@@ -1,0 +1,5528 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Capacities API",
+    "version": "1.0.0",
+    "termsOfService": "https://capacities.io/terms-and-conditions",
+    "description": "Interactive **reference** for all routes of the Capacities API.\n\nYou can add your `cap-api-…` token in the **`Bearer Token`** field to make requests in this dashboard.",
+    "x-scalar-sdk-installation": [
+      {
+        "lang": "Node",
+        "description": "Install the Capacities TypeScript SDK:",
+        "source": "npm install @capacities/api\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****' \n})"
+      }
+    ]
+  },
+  "servers": [
+    {
+      "url": "https://api.capacities.io"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Space",
+      "description": "Space related operations"
+    },
+    {
+      "name": "Object",
+      "description": "Operations on objects in a space"
+    },
+    {
+      "name": "Blocks",
+      "description": "Block content operations on objects"
+    },
+    {
+      "name": "Objects",
+      "description": "Search and list objects in a space"
+    }
+  ],
+  "paths": {
+    "/space": {
+      "get": {
+        "summary": "Get space",
+        "description": "Returns information about the space associated with the API token.\n\n<br>\n\n**Rate limit**: 10 requests per 60 seconds",
+        "tags": [
+          "Space"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst space = await capacities.space.get()"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "ac7abb59-b1fd-4102-b549-78e5443610ac",
+                  "title": "Notes",
+                  "icon": {
+                    "type": "iconify",
+                    "val": "ph-lightbulb"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the space."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Display title of the space."
+                    },
+                    "icon": {
+                      "description": "Icon of the space, if set.",
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiIconOutput"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/space/structures": {
+      "get": {
+        "summary": "Get space structures",
+        "description": "Returns structures visible in the space, including property definitions and collections. See [Structures](/api/concepts/structures) and [Properties](/api/concepts/properties).\n\n<br>\n\n**Rate limit**: 10 requests per 60 seconds",
+        "tags": [
+          "Space"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst { structures } = await capacities.space.structures()"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "structures": [
+                    {
+                      "id": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                      "title": "Book",
+                      "pluralName": "Books",
+                      "propertyDefinitions": [
+                        {
+                          "id": "title",
+                          "name": "",
+                          "type": "title",
+                          "writable": true
+                        },
+                        {
+                          "id": "status",
+                          "name": "Status",
+                          "type": "label",
+                          "writable": true,
+                          "multiple": false,
+                          "labelSet": [
+                            {
+                              "id": "not-started",
+                              "name": "Not started"
+                            },
+                            {
+                              "id": "in-progress",
+                              "name": "In progress"
+                            },
+                            {
+                              "id": "done",
+                              "name": "Done"
+                            }
+                          ]
+                        }
+                      ],
+                      "labelColor": "purple",
+                      "collections": [
+                        {
+                          "id": "5cd11f44-88f9-448b-9875-af8ff1a5b2b9",
+                          "title": "Favorites"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "structures": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "RootSpace",
+                                  "User",
+                                  "UserPersonal",
+                                  "RootDatabase",
+                                  "RootQuery",
+                                  "RootPage",
+                                  "RootStructure",
+                                  "RootEntity",
+                                  "RootBlocksTemplate",
+                                  "MediaImage",
+                                  "MediaPDF",
+                                  "MediaAudio",
+                                  "MediaVideo",
+                                  "MediaWebResource",
+                                  "MediaFile",
+                                  "MediaTweet",
+                                  "RootAIChat",
+                                  "RootSimpleTable",
+                                  "RootDailyNote",
+                                  "RootTag",
+                                  "UtilDate",
+                                  "RootTask"
+                                ]
+                              }
+                            ],
+                            "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "Singular display name of the structure."
+                          },
+                          "pluralName": {
+                            "type": "string",
+                            "description": "Plural display name of the structure."
+                          },
+                          "propertyDefinitions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Stable property definition id (UUID or built-in key such as `title`)."
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "description": "Display name of the property."
+                                },
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "title",
+                                    "text",
+                                    "number",
+                                    "boolean",
+                                    "url",
+                                    "date",
+                                    "label",
+                                    "entity",
+                                    "aliases",
+                                    "icon",
+                                    "createdAt",
+                                    "lastUpdatedAt",
+                                    "richText"
+                                  ],
+                                  "description": "Property value type."
+                                },
+                                "writable": {
+                                  "type": "boolean",
+                                  "description": "Whether the property can be set on create or update."
+                                },
+                                "multiple": {
+                                  "description": "When `type` is `label`: `true` if multiple options may be selected, `false` for single-select.",
+                                  "type": "boolean"
+                                },
+                                "labelSet": {
+                                  "description": "Fixed selectable options when `type` is `label`. Omitted for other property types.",
+                                  "type": "array",
+                                  "items": {
+                                    "$ref": "#/components/schemas/ApiLabelOptionOutput"
+                                  }
+                                },
+                                "allowedStructures": {
+                                  "description": "When `type` is `entity`: structure ids of objects that may be linked in this property.",
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name",
+                                "type",
+                                "writable"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "description": "Property definitions for this structure."
+                          },
+                          "labelColor": {
+                            "type": "string",
+                            "description": "Hex color used as the label color for this structure."
+                          },
+                          "collections": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                                  "description": "Unique identifier of the collection (database)."
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "Display title of the collection."
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "title"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "description": "Non-default collections (databases) that use this structure."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "pluralName",
+                          "propertyDefinitions",
+                          "labelColor",
+                          "collections"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Visible structures in the space."
+                    }
+                  },
+                  "required": [
+                    "structures"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/object": {
+      "get": {
+        "summary": "Get object",
+        "description": "Returns one object by id, including typed properties and optional block content. See [Objects](/api/concepts/objects) and [Properties](/api/concepts/properties).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.object.get({\n  id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n})"
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Unique identifier of the object."
+            },
+            "required": true,
+            "description": "Unique identifier of the object."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "Example"
+                      }
+                    },
+                    "description": {
+                      "type": "richText",
+                      "richText": {
+                        "value": [
+                          {
+                            "type": "TextToken",
+                            "text": "Hello ",
+                            "style": {
+                              "bold": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "blocks": {
+                    "notes": [
+                      {
+                        "id": "0742d198-776c-4329-8524-9f320908d425",
+                        "type": "TextBlock",
+                        "tokens": [
+                          {
+                            "type": "TextToken",
+                            "text": "Section",
+                            "style": {}
+                          }
+                        ],
+                        "blocks": [],
+                        "hierarchy": {
+                          "key": "Base",
+                          "val": 0
+                        }
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create object",
+        "description": "Creates a new object in the current space. See [Objects](/api/concepts/objects) for collections, properties, and block content.\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.object.create({\n  structureId: '4ba6e5c6-3f31-45f2-93a0-27a8b2d91551',\n  collections: ['9f20f3d7-7df6-4b4a-8f82-123456789abc'],\n  properties: {\n    title: { type: 'title', title: { value: 'New object' } },\n  },\n  blocks: {\n    \"2b460909-3c4b-443e-91eb-315c1baf419c\": [\n      {\n        type: 'TextBlock',\n        tokens: [{ type: 'TextToken', text: 'Initial content', style: {} }],\n        hierarchy: { key: 'Base', val: 0 },\n      },\n    ],\n  },\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                "collections": [
+                  "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "title",
+                    "title": {
+                      "value": "New object"
+                    }
+                  }
+                },
+                "blocks": {
+                  "2b460909-3c4b-443e-91eb-315c1baf419c": [
+                    {
+                      "type": "TextBlock",
+                      "tokens": [
+                        {
+                          "type": "TextToken",
+                          "text": "Initial content",
+                          "style": {}
+                        }
+                      ],
+                      "hierarchy": {
+                        "key": "Base",
+                        "val": 0
+                      }
+                    }
+                  ]
+                }
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "structureId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "RootSpace",
+                          "User",
+                          "UserPersonal",
+                          "RootDatabase",
+                          "RootQuery",
+                          "RootPage",
+                          "RootStructure",
+                          "RootEntity",
+                          "RootBlocksTemplate",
+                          "MediaImage",
+                          "MediaPDF",
+                          "MediaAudio",
+                          "MediaVideo",
+                          "MediaWebResource",
+                          "MediaFile",
+                          "MediaTweet",
+                          "RootAIChat",
+                          "RootSimpleTable",
+                          "RootDailyNote",
+                          "RootTag",
+                          "UtilDate",
+                          "RootTask"
+                        ]
+                      }
+                    ],
+                    "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                  },
+                  "collections": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "description": "Collection ids to assign. Pass an empty array to use the default collection for this structure."
+                  },
+                  "properties": {
+                    "description": "Initial writable properties to set on the new object.",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/WritableApiObjectProperties"
+                      }
+                    ]
+                  },
+                  "blocks": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WritableApiBlock"
+                      }
+                    },
+                    "description": "Block content keyed by property definition id."
+                  }
+                },
+                "required": [
+                  "structureId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "New object"
+                      }
+                    }
+                  },
+                  "blocks": {
+                    "2b460909-3c4b-443e-91eb-315c1baf419c": [
+                      {
+                        "id": "0742d198-776c-4329-8524-9f320908d425",
+                        "type": "TextBlock",
+                        "tokens": [
+                          {
+                            "type": "TextToken",
+                            "text": "Initial content",
+                            "style": {}
+                          }
+                        ],
+                        "blocks": [],
+                        "hierarchy": {
+                          "key": "Base",
+                          "val": 0
+                        }
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update object",
+        "description": "Updates an object by id. Provide at least one of `properties`, `collections`, or `blocks`. See [Objects](/api/concepts/objects).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.object.update({\n  id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n  properties: {\n    title: { type: 'title', title: { value: 'New title' } },\n  },\n  collections: ['9f20f3d7-7df6-4b4a-8f82-123456789abc'],\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                "properties": {
+                  "title": {
+                    "type": "title",
+                    "title": {
+                      "value": "New title"
+                    }
+                  }
+                },
+                "collections": [
+                  "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                ]
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier of the object to update."
+                  },
+                  "collections": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "description": "Collection ids to assign. Pass an empty array to use the default collection for this structure."
+                  },
+                  "properties": {
+                    "description": "Map of property definition id → value; only include keys you want to change.",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/WritableApiObjectProperties"
+                      }
+                    ]
+                  },
+                  "blocks": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WritableApiBlock"
+                      }
+                    },
+                    "description": "Block content keyed by property definition id."
+                  },
+                  "deleteRequested": {
+                    "description": "When `true`, moves the object to trash. When `false`, restores a trashed object.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "New title"
+                      }
+                    }
+                  },
+                  "blocks": {}
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete object",
+        "description": "Deletes an object (moves to trash by default). Pass `hardDelete=true` to permanently delete. See [Objects](/api/concepts/objects).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nawait capacities.object.delete({\n  id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n})"
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Unique identifier of the object to delete."
+            },
+            "required": true,
+            "description": "Unique identifier of the object to delete."
+          },
+          {
+            "in": "query",
+            "name": "hardDelete",
+            "schema": {
+              "description": "When `true`, permanently deletes the object. When omitted or `false`, moves the object to trash.",
+              "type": "boolean"
+            },
+            "required": true,
+            "description": "When `true`, permanently deletes the object. When omitted or `false`, moves the object to trash."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK"
+          }
+        }
+      }
+    },
+    "/object/url": {
+      "post": {
+        "summary": "Create object from URL",
+        "description": "Creates a weblink or media object from a URL. Optional `properties` set title and description; optional `markdown` or `blocks` add notes (not both). See [Markdown](/api/concepts/markdown) and [Blocks](/api/concepts/blocks).\n\n<br>\n\n**Rate limit**: 10 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.object.createFromUrl({\n  url: 'https://example.com/article',\n  properties: {\n    title: { type: 'title', title: { value: 'Example article' } },\n    description: { type: 'text', text: { value: 'A short summary' } },\n  },\n  markdown: 'Notes about this article',\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "url": "https://example.com/article",
+                "properties": {
+                  "title": {
+                    "type": "title",
+                    "title": {
+                      "value": "Example article"
+                    }
+                  },
+                  "description": {
+                    "type": "text",
+                    "text": {
+                      "value": "A short summary"
+                    }
+                  }
+                },
+                "markdown": "Notes about this article"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL to save as a web resource object."
+                  },
+                  "markdown": {
+                    "description": "Optional Markdown content to add to the notes of the new object.",
+                    "type": "string",
+                    "maxLength": 200000
+                  },
+                  "blocks": {
+                    "description": "Optional block content keyed by property definition id (e.g. `media_notes`).",
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WritableApiBlock"
+                      }
+                    }
+                  },
+                  "properties": {
+                    "description": "Optional title and description overrides for the created web resource.",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/CreateObjectFromUrlProperties"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "MediaWebResource",
+                  "collections": [],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "Example article"
+                      }
+                    },
+                    "media_URLReference": {
+                      "type": "url",
+                      "url": {
+                        "value": "https://example.com/article"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/object/markdown": {
+      "get": {
+        "summary": "Get object as Markdown",
+        "description": "Exports an object as Markdown. See [Markdown](/api/concepts/markdown).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.object.markdown.get({\n  id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n})"
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Unique identifier of the object to render as Markdown."
+            },
+            "required": true,
+            "description": "Unique identifier of the object to render as Markdown."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "markdown": "# Example\n\nHello from Capacities."
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "markdown": {
+                      "type": "string",
+                      "description": "Markdown representation of the object content."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "markdown"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create object from Markdown",
+        "description": "Creates an object from Markdown. See [Markdown](/api/concepts/markdown).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.object.markdown.create({\n  structureId: '4ba6e5c6-3f31-45f2-93a0-27a8b2d91551',\n  markdown: '# New object\\n\\nInitial content',\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                "markdown": "# New object\n\nInitial content"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "structureId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "RootSpace",
+                          "User",
+                          "UserPersonal",
+                          "RootDatabase",
+                          "RootQuery",
+                          "RootPage",
+                          "RootStructure",
+                          "RootEntity",
+                          "RootBlocksTemplate",
+                          "MediaImage",
+                          "MediaPDF",
+                          "MediaAudio",
+                          "MediaVideo",
+                          "MediaWebResource",
+                          "MediaFile",
+                          "MediaTweet",
+                          "RootAIChat",
+                          "RootSimpleTable",
+                          "RootDailyNote",
+                          "RootTag",
+                          "UtilDate",
+                          "RootTask"
+                        ]
+                      }
+                    ],
+                    "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                  },
+                  "markdown": {
+                    "type": "string",
+                    "description": "Markdown content used to create the object."
+                  }
+                },
+                "required": [
+                  "structureId",
+                  "markdown"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "New object"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update object properties from Markdown",
+        "description": "Updates writable object properties from YAML frontmatter in a Markdown string. Body content after the frontmatter is ignored. See [Markdown](/api/concepts/markdown).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Object"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.object.markdown.update({\n  id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n  markdown: '---\\ndescription: Updated description\\n---\\n',\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                "markdown": "---\ndescription: Updated description\n---\n"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier of the object to update."
+                  },
+                  "markdown": {
+                    "type": "string",
+                    "description": "Markdown with YAML frontmatter for the properties to update. Body content after --- is ignored."
+                  }
+                },
+                "required": [
+                  "id",
+                  "markdown"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "Example object"
+                      }
+                    },
+                    "description": {
+                      "type": "text",
+                      "text": {
+                        "value": "Updated description"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/objects/search": {
+      "post": {
+        "summary": "Search objects",
+        "description": "Searches objects in the current space by matching the query against object titles. Results are ordered by relevance and can be limited to specific structures with `structureIds`.\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Objects"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst { results } = await capacities.objects.search({\n  query: 'project alpha',\n  structureIds: ['RootPage'],\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "query": "project alpha",
+                "structureIds": [
+                  "RootPage"
+                ],
+                "limit": 20
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512,
+                    "description": "Text to match against object titles."
+                  },
+                  "structureIds": {
+                    "description": "Optional structure id filters. When set, only objects of these types are returned.",
+                    "minItems": 1,
+                    "maxItems": 25,
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    }
+                  },
+                  "limit": {
+                    "description": "Maximum number of results to return. Defaults to 20, maximum 50.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "results": [
+                    {
+                      "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                      "structureId": "RootPage",
+                      "title": "Project Alpha"
+                    }
+                  ]
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "description": "Unique identifier of the matching object."
+                          },
+                          "structureId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "RootSpace",
+                                  "User",
+                                  "UserPersonal",
+                                  "RootDatabase",
+                                  "RootQuery",
+                                  "RootPage",
+                                  "RootStructure",
+                                  "RootEntity",
+                                  "RootBlocksTemplate",
+                                  "MediaImage",
+                                  "MediaPDF",
+                                  "MediaAudio",
+                                  "MediaVideo",
+                                  "MediaWebResource",
+                                  "MediaFile",
+                                  "MediaTweet",
+                                  "RootAIChat",
+                                  "RootSimpleTable",
+                                  "RootDailyNote",
+                                  "RootTag",
+                                  "UtilDate",
+                                  "RootTask"
+                                ]
+                              }
+                            ],
+                            "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "Display title of the matching object."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "structureId",
+                          "title"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Matching objects ordered by search relevance."
+                    }
+                  },
+                  "required": [
+                    "results"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/blocks/append": {
+      "post": {
+        "summary": "Append blocks",
+        "description": "Appends content to an object as blocks or Markdown (provide exactly one of `blocks` or `markdown`). See [Blocks](/api/concepts/blocks) for position, parent, and property options.\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Blocks"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.blocks.append({\n  id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n  blocks: [\n    {\n      type: 'TextBlock',\n      tokens: [{ type: 'TextToken', text: 'New paragraph', style: {} }],\n      hierarchy: { key: 'Base', val: 0 },\n    },\n  ],\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                "position": {
+                  "type": "end"
+                },
+                "blocks": [
+                  {
+                    "type": "TextBlock",
+                    "tokens": [
+                      {
+                        "type": "TextToken",
+                        "text": "New paragraph",
+                        "style": {}
+                      }
+                    ],
+                    "hierarchy": {
+                      "key": "Base",
+                      "val": 0
+                    }
+                  }
+                ]
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "description": "ID of the object to append blocks to."
+                  },
+                  "propertyId": {
+                    "description": "Property definition id for the block field.",
+                    "type": "string"
+                  },
+                  "parentBlockId": {
+                    "description": "Parent block id when nesting under `end` or `start`.",
+                    "type": "string"
+                  },
+                  "position": {
+                    "description": "Insert position (`end`, `start`, or `after_block`).",
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/AppendBlocksPosition"
+                      }
+                    ]
+                  },
+                  "blocks": {
+                    "description": "Blocks to append. Omit `id` on new blocks.",
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WritableApiBlock"
+                    }
+                  },
+                  "markdown": {
+                    "description": "Markdown to convert and append as blocks.",
+                    "type": "string",
+                    "maxLength": 200000
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "Example"
+                      }
+                    }
+                  },
+                  "blocks": {
+                    "content": [
+                      {
+                        "id": "0742d198-776c-4329-8524-9f320908d425",
+                        "type": "TextBlock",
+                        "tokens": [
+                          {
+                            "type": "TextToken",
+                            "text": "New paragraph",
+                            "style": {}
+                          }
+                        ],
+                        "blocks": [],
+                        "hierarchy": {
+                          "key": "Base",
+                          "val": 0
+                        }
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/blocks/daily-note/append": {
+      "post": {
+        "summary": "Append blocks to daily note",
+        "description": "Appends content to a daily note as blocks or Markdown (provide exactly one of `blocks` or `markdown`; processed asynchronously). See [Blocks](/api/concepts/blocks#daily-notes).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Blocks"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nawait capacities.blocks.dailyNote.append({\n  blocks: [\n    {\n      type: 'TextBlock',\n      tokens: [{ type: 'TextToken', text: 'My note', style: {} }],\n      hierarchy: { key: 'Base', val: 0 },\n    },\n  ],\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "blocks": [
+                  {
+                    "type": "TextBlock",
+                    "tokens": [
+                      {
+                        "type": "TextToken",
+                        "text": "My note",
+                        "style": {}
+                      }
+                    ],
+                    "hierarchy": {
+                      "key": "Base",
+                      "val": 0
+                    }
+                  }
+                ]
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "description": "Daily note day (ISO 8601, UTC midnight). Defaults to today.",
+                    "type": "string"
+                  },
+                  "noTimeStamp": {
+                    "description": "When `true`, omit the timestamp heading block.",
+                    "type": "boolean"
+                  },
+                  "blocks": {
+                    "description": "Blocks to append. Omit `id` on new blocks.",
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WritableApiBlock"
+                    }
+                  },
+                  "markdown": {
+                    "description": "Markdown content to append to the daily note.",
+                    "type": "string",
+                    "maxLength": 200000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK"
+          }
+        }
+      }
+    },
+    "/blocks/block": {
+      "patch": {
+        "summary": "Update block",
+        "description": "Updates a single block’s content. See [Blocks](/api/concepts/blocks#updating-a-single-block).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Blocks"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.blocks.update({\n  id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n  blockId: '0742d198-776c-4329-8524-9f320908d425',\n  block: {\n    type: 'TextBlock',\n    tokens: [{ type: 'TextToken', text: 'Updated text', style: {} }],\n    hierarchy: { key: 'Base', val: 0 },\n  },\n})"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                "blockId": "0742d198-776c-4329-8524-9f320908d425",
+                "block": {
+                  "type": "TextBlock",
+                  "tokens": [
+                    {
+                      "type": "TextToken",
+                      "text": "Updated text",
+                      "style": {}
+                    }
+                  ],
+                  "hierarchy": {
+                    "key": "Base",
+                    "val": 0
+                  }
+                }
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "description": "Unique identifier of the object containing the block."
+                  },
+                  "blockId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier of the block to update."
+                  },
+                  "propertyId": {
+                    "description": "Property definition id that contains the block.",
+                    "type": "string"
+                  },
+                  "block": {
+                    "description": "Replacement block content.",
+                    "$ref": "#/components/schemas/WritableApiBlock"
+                  }
+                },
+                "required": [
+                  "id",
+                  "blockId",
+                  "block"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "Example"
+                      }
+                    }
+                  },
+                  "blocks": {
+                    "content": [
+                      {
+                        "id": "0742d198-776c-4329-8524-9f320908d425",
+                        "type": "TextBlock",
+                        "tokens": [
+                          {
+                            "type": "TextToken",
+                            "text": "Updated text",
+                            "style": {}
+                          }
+                        ],
+                        "blocks": [],
+                        "hierarchy": {
+                          "key": "Base",
+                          "val": 0
+                        }
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/block": {
+      "delete": {
+        "summary": "Delete block",
+        "description": "Deletes a single block by id (including nested child blocks). See [Blocks](/api/concepts/blocks).\n\n<br>\n\n**Rate limit**: 30 requests per 60 seconds",
+        "tags": [
+          "Blocks"
+        ],
+        "x-codeSamples": [
+          {
+            "label": "TypeScript SDK",
+            "lang": "Node",
+            "source": "import { CapacitiesClient } from '@capacities/api'\n\nconst capacities = new CapacitiesClient({\n  apiToken: 'cap-api-1lNgD7****',\n})\n\nconst obj = await capacities.blocks.deleteBlock({\n  objectId: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',\n  blockId: '0742d198-776c-4329-8524-9f320908d425',\n})"
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "objectId",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Object id containing the block."
+            },
+            "required": true,
+            "description": "Object id containing the block."
+          },
+          {
+            "in": "query",
+            "name": "blockId",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Block id to remove (including nested child blocks)."
+            },
+            "required": true,
+            "description": "Block id to remove (including nested child blocks)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "7d2e7f8a-4c3b-4e1d-9f0a-123456789abc",
+                  "structureId": "4ba6e5c6-3f31-45f2-93a0-27a8b2d91551",
+                  "collections": [
+                    "9f20f3d7-7df6-4b4a-8f82-123456789abc"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "title",
+                      "title": {
+                        "value": "Example"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "description": "Unique identifier of the object."
+                    },
+                    "structureId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "RootSpace",
+                            "User",
+                            "UserPersonal",
+                            "RootDatabase",
+                            "RootQuery",
+                            "RootPage",
+                            "RootStructure",
+                            "RootEntity",
+                            "RootBlocksTemplate",
+                            "MediaImage",
+                            "MediaPDF",
+                            "MediaAudio",
+                            "MediaVideo",
+                            "MediaWebResource",
+                            "MediaFile",
+                            "MediaTweet",
+                            "RootAIChat",
+                            "RootSimpleTable",
+                            "RootDailyNote",
+                            "RootTag",
+                            "UtilDate",
+                            "RootTask"
+                          ]
+                        }
+                      ],
+                      "description": "Structure id (UUID for custom types, or a built-in id such as RootPage)."
+                    },
+                    "collections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "description": "Collection ids this object is currently assigned to."
+                    },
+                    "properties": {
+                      "$ref": "#/components/schemas/ApiObjectProperties"
+                    },
+                    "blocks": {
+                      "description": "Block content keyed by property definition id.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ApiBlock"
+                        }
+                      }
+                    },
+                    "files": {
+                      "description": "File resources attached to this object. Present only for media object types.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Signed URL for downloading the original file."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "description": "MIME type of the file (e.g. `image/jpeg`, `application/pdf`)."
+                          },
+                          "expirationDate": {
+                            "description": "ISO 8601 datetime after which the signed URL expires. Re-fetch the object to get a fresh URL.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "url",
+                          "fileType"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "structureId",
+                    "collections",
+                    "properties"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WritableApiObjectProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/WritableApiObjectPropertyValue"
+        },
+        "description": "Writable properties keyed by property definition id."
+      },
+      "WritableApiObjectPropertyValue": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WritableApiTitleProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiTextProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiNumberProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiBooleanProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiUrlProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiDateProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiLabelProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiEntityProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiAliasesProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiIconProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiCreatedAtProperty"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiRichTextProperty"
+          }
+        ],
+        "description": "Typed object property value accepted when writing object properties.",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "title": "#/components/schemas/WritableApiTitleProperty",
+            "text": "#/components/schemas/WritableApiTextProperty",
+            "number": "#/components/schemas/WritableApiNumberProperty",
+            "boolean": "#/components/schemas/WritableApiBooleanProperty",
+            "url": "#/components/schemas/WritableApiUrlProperty",
+            "date": "#/components/schemas/WritableApiDateProperty",
+            "label": "#/components/schemas/WritableApiLabelProperty",
+            "entity": "#/components/schemas/WritableApiEntityProperty",
+            "aliases": "#/components/schemas/WritableApiAliasesProperty",
+            "icon": "#/components/schemas/WritableApiIconProperty",
+            "createdAt": "#/components/schemas/WritableApiCreatedAtProperty",
+            "richText": "#/components/schemas/WritableApiRichTextProperty"
+          }
+        }
+      },
+      "WritableApiTitleProperty": {
+        "description": "Writable title property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiTitleProperty"
+          }
+        ]
+      },
+      "ApiTitleProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "title"
+            ]
+          },
+          "title": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Plain-text title value.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "title"
+        ],
+        "description": "Title property value."
+      },
+      "WritableApiTextProperty": {
+        "description": "Writable plain-text property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiTextProperty"
+          }
+        ]
+      },
+      "ApiTextProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "text"
+            ]
+          },
+          "text": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Plain-text value.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "description": "Plain-text property value."
+      },
+      "WritableApiNumberProperty": {
+        "description": "Writable number property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiNumberProperty"
+          }
+        ]
+      },
+      "ApiNumberProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "number"
+            ]
+          },
+          "number": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Numeric value.",
+                "type": "number"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "number"
+        ],
+        "description": "Number property value."
+      },
+      "WritableApiBooleanProperty": {
+        "description": "Writable boolean property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiBooleanProperty"
+          }
+        ]
+      },
+      "ApiBooleanProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "boolean"
+            ]
+          },
+          "boolean": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Boolean value.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "boolean"
+        ],
+        "description": "Boolean property value."
+      },
+      "WritableApiUrlProperty": {
+        "description": "Writable URL property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiUrlProperty"
+          }
+        ]
+      },
+      "ApiUrlProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "url"
+            ]
+          },
+          "url": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "URL string.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ],
+        "description": "URL property value."
+      },
+      "WritableApiDateProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "date"
+            ]
+          },
+          "date": {
+            "$ref": "#/components/schemas/WritableApiDatePayload"
+          }
+        },
+        "required": [
+          "type",
+          "date"
+        ],
+        "description": "Writable date property value."
+      },
+      "WritableApiDatePayload": {
+        "type": "object",
+        "properties": {
+          "dateResolution": {
+            "description": "`day` or `time` (defaults to `day` for link-token dates).",
+            "type": "string",
+            "enum": [
+              "time",
+              "day"
+            ]
+          },
+          "start": {
+            "nullable": true,
+            "description": "ISO 8601 start. Pass `null` to clear the date.",
+            "type": "string"
+          },
+          "end": {
+            "description": "ISO 8601 end, if any. Cleared together with `start` when removing the date.",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "start"
+        ],
+        "description": "Date value when writing."
+      },
+      "WritableApiLabelProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "label"
+            ]
+          },
+          "label": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiLabelOption"
+            },
+            "description": "Selected label options (empty array clears the field)."
+          }
+        },
+        "required": [
+          "type",
+          "label"
+        ],
+        "description": "Writable label property value."
+      },
+      "ApiLabelOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable option id from the property definition."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display label."
+          },
+          "color": {
+            "description": "Theme color key for the option, if set.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Selectable option for single and multi label properties."
+      },
+      "WritableApiEntityProperty": {
+        "description": "Writable entity property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiEntityProperty"
+          }
+        ]
+      },
+      "ApiEntityTarget": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Referenced object id."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "description": "Referenced object in an entity property."
+      },
+      "ApiEntityProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "entity"
+            ]
+          },
+          "entity": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiEntityTarget"
+            },
+            "description": "Linked objects by id (empty array clears the field)."
+          }
+        },
+        "required": [
+          "type",
+          "entity"
+        ],
+        "description": "Entity property value."
+      },
+      "WritableApiAliasesProperty": {
+        "description": "Writable aliases property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiAliasesProperty"
+          }
+        ]
+      },
+      "ApiAliasesProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "aliases"
+            ]
+          },
+          "aliases": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Alias strings (at most 8 per object)."
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "aliases"
+        ],
+        "description": "Aliases property value."
+      },
+      "WritableApiIconProperty": {
+        "description": "Writable icon property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiIconProperty"
+          }
+        ]
+      },
+      "ApiIcon": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "emoji",
+              "iconify"
+            ],
+            "description": "Icon variant — `emoji` for an emoji character, `iconify` for a regular Phosphor icon ID. See https://phosphoricons.com/."
+          },
+          "val": {
+            "type": "string",
+            "description": "The icon value. For `emoji`, use a single emoji. For `iconify`, use regular Phosphor `ph-name` syntax only, for example `ph-star`; styled variants such as `-duotone`, `-fill`, `-bold`, `-light`, and `-thin` are not accepted."
+          }
+        },
+        "required": [
+          "type",
+          "val"
+        ],
+        "description": "Object or space icon value."
+      },
+      "ApiIconProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "icon"
+            ]
+          },
+          "icon": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Icon value, or null to clear the icon.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ApiIcon"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "icon"
+        ],
+        "description": "Icon property value."
+      },
+      "WritableApiCreatedAtProperty": {
+        "description": "Writable object creation timestamp property value.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiCreatedAtProperty"
+          }
+        ]
+      },
+      "ApiCreatedAtProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "createdAt"
+            ]
+          },
+          "createdAt": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "ISO 8601 timestamp when the object was created."
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "createdAt"
+        ],
+        "description": "Object creation timestamp property value."
+      },
+      "WritableApiRichTextProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "richText"
+            ]
+          },
+          "richText": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WritableApiToken"
+                },
+                "description": "Inline text tokens."
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "richText"
+        ],
+        "description": "Writable rich-text property value."
+      },
+      "WritableApiToken": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ApiTextToken"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiLinkToken"
+          },
+          {
+            "$ref": "#/components/schemas/ApiMathToken"
+          },
+          {
+            "$ref": "#/components/schemas/ApiCodeToken"
+          }
+        ],
+        "description": "Inline token for append or block update.",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "TextToken": "#/components/schemas/ApiTextToken",
+            "LinkToken": "#/components/schemas/WritableApiLinkToken",
+            "MathToken": "#/components/schemas/ApiMathToken",
+            "CodeToken": "#/components/schemas/ApiCodeToken"
+          }
+        }
+      },
+      "ApiTextToken": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "TextToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "style": {
+            "type": "object",
+            "properties": {
+              "bold": {
+                "type": "boolean"
+              },
+              "italic": {
+                "type": "boolean"
+              },
+              "strikethrough": {
+                "type": "boolean"
+              },
+              "underline": {
+                "type": "boolean"
+              }
+            }
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "text",
+          "style"
+        ],
+        "description": "Plain text with optional bold, italic, strikethrough, underline, and color."
+      },
+      "WritableApiLinkToken": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "LinkToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "entityId": {
+            "description": "Referenced object id when the link targets a Capacities object.",
+            "type": "string"
+          },
+          "date": {
+            "description": "Date value; creates or updates a linked UtilDate object.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WritableApiDatePayload"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "description": "Writable hyperlink — exactly one target: URL, entity id, or date."
+      },
+      "ApiMathToken": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MathToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "description": "Inline math (LaTeX)."
+      },
+      "ApiCodeToken": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CodeToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "description": "Inline code span."
+      },
+      "WritableApiBlock": {
+        "description": "Block for append or update. Omit `id` when creating new blocks.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WritableApiTextBlock"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiGroupBlock"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiGridBlock"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiCodeBlock"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiMathBlock"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiEntityBlock"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiHorizontalLineBlock"
+          }
+        ],
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "TextBlock": "#/components/schemas/WritableApiTextBlock",
+            "GroupBlock": "#/components/schemas/WritableApiGroupBlock",
+            "GridBlock": "#/components/schemas/WritableApiGridBlock",
+            "CodeBlock": "#/components/schemas/WritableApiCodeBlock",
+            "MathBlock": "#/components/schemas/WritableApiMathBlock",
+            "EntityBlock": "#/components/schemas/WritableApiEntityBlock",
+            "HorizontalLineBlock": "#/components/schemas/WritableApiHorizontalLineBlock"
+          }
+        }
+      },
+      "WritableApiTextBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "TextBlock"
+            ]
+          },
+          "tokens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WritableApiToken"
+            }
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WritableApiBlock"
+            }
+          },
+          "hierarchy": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "val": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "key",
+              "val"
+            ]
+          },
+          "list": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bullet",
+                  "alphabetical",
+                  "numerical",
+                  "roman"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "todo": {
+            "type": "object",
+            "properties": {
+              "isDone": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isDone"
+            ]
+          },
+          "toggle": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "isOpen": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isOpen"
+            ]
+          },
+          "quote": {
+            "type": "object",
+            "properties": {
+              "layout": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "standout"
+                ]
+              }
+            },
+            "required": [
+              "layout"
+            ]
+          },
+          "textAlignment": {
+            "type": "string",
+            "enum": [
+              "left",
+              "center",
+              "right"
+            ]
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          },
+          "highlight": {
+            "description": "Highlight annotation to attach.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WritableApiHighlight"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "description": "Paragraph or heading with inline tokens and optional nested blocks."
+      },
+      "WritableApiHighlight": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WritableApiWebhighlightsHighlight"
+          },
+          {
+            "$ref": "#/components/schemas/WritableApiCustomHighlight"
+          }
+        ],
+        "description": "Highlight annotation to attach to a text block. Allowed types: 'custom' (available to all callers) and 'webhighlights' (restricted to the authorized WebHighlights OAuth client).",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "webhighlights": "#/components/schemas/WritableApiWebhighlightsHighlight",
+            "custom": "#/components/schemas/WritableApiCustomHighlight"
+          }
+        }
+      },
+      "WritableApiWebhighlightsHighlight": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "webhighlights"
+            ]
+          },
+          "url": {
+            "description": "Source URL of the web highlight.",
+            "type": "string"
+          },
+          "color": {
+            "description": "Highlight color stored as annotation metadata.",
+            "type": "string",
+            "enum": [
+              "yellow",
+              "orange",
+              "green",
+              "red",
+              "purple",
+              "blue"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "description": "Web highlight from the WebHighlights browser extension. **Restricted**: only requests authenticated via the authorized WebHighlights OAuth client are permitted to create highlights of this type. All other callers will receive a 400 error."
+      },
+      "WritableApiCustomHighlight": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "custom"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Display label for the custom highlight (max 20 characters)."
+          },
+          "location": {
+            "description": "Optional location text shown below the highlighted block (max 20 characters).",
+            "type": "string",
+            "maxLength": 20
+          },
+          "url": {
+            "description": "Optional source URL for the custom highlight.",
+            "type": "string"
+          },
+          "color": {
+            "description": "Highlight color stored as annotation metadata.",
+            "type": "string",
+            "enum": [
+              "yellow",
+              "orange",
+              "green",
+              "red",
+              "purple",
+              "blue"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "label"
+        ],
+        "description": "Custom user-defined highlight with a required label and optional location."
+      },
+      "WritableApiGroupBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "GroupBlock"
+            ]
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WritableApiBlock"
+            }
+          },
+          "list": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bullet",
+                  "alphabetical",
+                  "numerical",
+                  "roman"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "todo": {
+            "type": "object",
+            "properties": {
+              "isDone": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isDone"
+            ]
+          },
+          "toggle": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "isOpen": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isOpen"
+            ]
+          },
+          "textAlignment": {
+            "type": "string",
+            "enum": [
+              "left",
+              "center",
+              "right"
+            ]
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "description": "Container block that groups nested blocks."
+      },
+      "WritableApiGridBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "GridBlock"
+            ]
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/WritableApiBlock"
+              }
+            }
+          },
+          "dividers": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "gridLayout": {
+            "type": "string",
+            "enum": [
+              "columns",
+              "grid"
+            ]
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "dividers"
+        ],
+        "description": "Grid layout block. When `columns` is provided it must include at least two column arrays. Use `gridLayout: \"grid\"` for grid mode or `\"columns\"` for column mode."
+      },
+      "WritableApiCodeBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CodeBlock"
+            ]
+          },
+          "lang": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "lang",
+          "text"
+        ],
+        "description": "Fenced code block with language and source text."
+      },
+      "WritableApiMathBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MathBlock"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "description": "Display math block (LaTeX)."
+      },
+      "WritableApiEntityBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "EntityBlock"
+            ]
+          },
+          "entityId": {
+            "nullable": true,
+            "type": "string"
+          },
+          "date": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WritableApiDatePayload"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "entityId"
+        ],
+        "description": "Embedded Capacities object reference, or null when empty."
+      },
+      "WritableApiHorizontalLineBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "HorizontalLineBlock"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "description": "Horizontal divider line."
+      },
+      "CreateObjectFromUrlProperties": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WritableApiTitleProperty"
+              }
+            ]
+          },
+          "description": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WritableApiTextProperty"
+              }
+            ]
+          }
+        },
+        "description": "Optional title and description overrides for URL object creation."
+      },
+      "AppendBlocksPosition": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AppendBlocksPositionEnd"
+          },
+          {
+            "$ref": "#/components/schemas/AppendBlocksPositionStart"
+          },
+          {
+            "$ref": "#/components/schemas/AppendBlocksPositionAfterBlock"
+          }
+        ],
+        "description": "Position descriptor for appending blocks.",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "end": "#/components/schemas/AppendBlocksPositionEnd",
+            "start": "#/components/schemas/AppendBlocksPositionStart",
+            "after_block": "#/components/schemas/AppendBlocksPositionAfterBlock"
+          }
+        }
+      },
+      "AppendBlocksPositionEnd": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "end"
+            ],
+            "description": "Insert at the end of the parent’s child list (default)."
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "description": "Insert appended blocks at the end of the target list."
+      },
+      "AppendBlocksPositionStart": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "start"
+            ],
+            "description": "Insert at the beginning of the parent’s child list."
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "description": "Insert appended blocks at the beginning of the target list."
+      },
+      "AppendBlocksPositionAfterBlock": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "after_block"
+            ],
+            "description": "Insert immediately after the given sibling block."
+          },
+          "after_block": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Block id of the sibling to insert after."
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "after_block"
+        ],
+        "description": "Insert appended blocks immediately after an existing sibling block."
+      },
+      "ApiObjectProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/ApiObjectPropertyValue"
+        },
+        "description": "Map of property definition id to typed object property value."
+      },
+      "ApiObjectPropertyValue": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ApiTitlePropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiTextPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiNumberPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiBooleanPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiUrlPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiDateProperty"
+          },
+          {
+            "$ref": "#/components/schemas/ApiLabelProperty"
+          },
+          {
+            "$ref": "#/components/schemas/ApiEntityPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiAliasesPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiIconPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiCreatedAtPropertyOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiLastUpdatedAtProperty"
+          },
+          {
+            "$ref": "#/components/schemas/ApiRichTextProperty"
+          }
+        ],
+        "description": "Typed object property value returned by the API.",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "title": "#/components/schemas/ApiTitlePropertyOutput",
+            "text": "#/components/schemas/ApiTextPropertyOutput",
+            "number": "#/components/schemas/ApiNumberPropertyOutput",
+            "boolean": "#/components/schemas/ApiBooleanPropertyOutput",
+            "url": "#/components/schemas/ApiUrlPropertyOutput",
+            "date": "#/components/schemas/ApiDateProperty",
+            "label": "#/components/schemas/ApiLabelProperty",
+            "entity": "#/components/schemas/ApiEntityPropertyOutput",
+            "aliases": "#/components/schemas/ApiAliasesPropertyOutput",
+            "icon": "#/components/schemas/ApiIconPropertyOutput",
+            "createdAt": "#/components/schemas/ApiCreatedAtPropertyOutput",
+            "lastUpdatedAt": "#/components/schemas/ApiLastUpdatedAtProperty",
+            "richText": "#/components/schemas/ApiRichTextProperty"
+          }
+        }
+      },
+      "ApiDateProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "date"
+            ]
+          },
+          "date": {
+            "$ref": "#/components/schemas/ApiDatePayload"
+          }
+        },
+        "required": [
+          "type",
+          "date"
+        ],
+        "additionalProperties": false,
+        "description": "Date property value."
+      },
+      "ApiDatePayload": {
+        "type": "object",
+        "properties": {
+          "dateResolution": {
+            "type": "string",
+            "enum": [
+              "time",
+              "day"
+            ],
+            "description": "`day` or `time`."
+          },
+          "start": {
+            "nullable": true,
+            "description": "ISO 8601 start.",
+            "type": "string"
+          },
+          "end": {
+            "nullable": true,
+            "description": "ISO 8601 end, if any.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dateResolution",
+          "start",
+          "end"
+        ],
+        "additionalProperties": false,
+        "description": "Date value."
+      },
+      "ApiLabelProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "label"
+            ]
+          },
+          "label": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiLabelOptionOutput"
+            },
+            "description": "Selected label options (empty array clears the field)."
+          }
+        },
+        "required": [
+          "type",
+          "label"
+        ],
+        "additionalProperties": false,
+        "description": "Label property value."
+      },
+      "ApiLastUpdatedAtProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "lastUpdatedAt"
+            ]
+          },
+          "lastUpdatedAt": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "ISO 8601 timestamp of the last update."
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "lastUpdatedAt"
+        ],
+        "additionalProperties": false,
+        "description": "Read-only object last edited timestamp property value."
+      },
+      "ApiRichTextProperty": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "richText"
+            ]
+          },
+          "richText": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ApiToken"
+                },
+                "description": "Inline text tokens."
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "richText"
+        ],
+        "additionalProperties": false,
+        "description": "Rich-text property value."
+      },
+      "ApiToken": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ApiTextTokenOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiLinkToken"
+          },
+          {
+            "$ref": "#/components/schemas/ApiMathTokenOutput"
+          },
+          {
+            "$ref": "#/components/schemas/ApiCodeTokenOutput"
+          }
+        ],
+        "description": "Inline token inside a TextBlock.",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "TextToken": "#/components/schemas/ApiTextTokenOutput",
+            "LinkToken": "#/components/schemas/ApiLinkToken",
+            "MathToken": "#/components/schemas/ApiMathTokenOutput",
+            "CodeToken": "#/components/schemas/ApiCodeTokenOutput"
+          }
+        }
+      },
+      "ApiLinkToken": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "LinkToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "entityId": {
+            "description": "Referenced object id when the link targets a Capacities object.",
+            "type": "string"
+          },
+          "date": {
+            "description": "Date value when the link targets a UtilDate object.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApiDatePayload"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "Hyperlink with display text and optional URL, object reference, or date."
+      },
+      "ApiBlock": {
+        "description": "A block in a Capacities object (text, code, grid, entity embed, etc.). Nested via `blocks` or grid `columns`.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ApiTextBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ApiGroupBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ApiGridBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ApiCodeBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ApiMathBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ApiEntityBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ApiHorizontalLineBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ApiUnsupportedBlock"
+          }
+        ],
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "TextBlock": "#/components/schemas/ApiTextBlock",
+            "GroupBlock": "#/components/schemas/ApiGroupBlock",
+            "GridBlock": "#/components/schemas/ApiGridBlock",
+            "CodeBlock": "#/components/schemas/ApiCodeBlock",
+            "MathBlock": "#/components/schemas/ApiMathBlock",
+            "EntityBlock": "#/components/schemas/ApiEntityBlock",
+            "HorizontalLineBlock": "#/components/schemas/ApiHorizontalLineBlock",
+            "unsupported": "#/components/schemas/ApiUnsupportedBlock"
+          }
+        }
+      },
+      "ApiTextBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TextBlock"
+            ]
+          },
+          "tokens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiToken"
+            }
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiBlock"
+            }
+          },
+          "hierarchy": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "val": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "key",
+              "val"
+            ],
+            "additionalProperties": false
+          },
+          "list": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bullet",
+                  "alphabetical",
+                  "numerical",
+                  "roman"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          "todo": {
+            "type": "object",
+            "properties": {
+              "isDone": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isDone"
+            ],
+            "additionalProperties": false
+          },
+          "toggle": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "isOpen": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isOpen"
+            ],
+            "additionalProperties": false
+          },
+          "quote": {
+            "type": "object",
+            "properties": {
+              "layout": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "standout"
+                ]
+              }
+            },
+            "required": [
+              "layout"
+            ],
+            "additionalProperties": false
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          },
+          "highlight": {
+            "description": "Highlight annotation attached to this block, if any.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApiHighlight"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "tokens",
+          "blocks",
+          "hierarchy"
+        ],
+        "additionalProperties": false,
+        "description": "Paragraph or heading with inline tokens and optional nested blocks."
+      },
+      "ApiHighlight": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "webhighlights",
+              "readwise",
+              "kindle-import",
+              "custom"
+            ]
+          },
+          "url": {
+            "description": "Source URL associated with this highlight, if any.",
+            "type": "string"
+          },
+          "label": {
+            "description": "Display label; present for custom highlights.",
+            "type": "string"
+          },
+          "location": {
+            "description": "Location text shown below the block; present for custom highlights (max 20 characters).",
+            "type": "string",
+            "maxLength": 20
+          },
+          "color": {
+            "description": "Highlight color stored as annotation metadata.",
+            "type": "string",
+            "enum": [
+              "yellow",
+              "orange",
+              "green",
+              "red",
+              "purple",
+              "blue"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false,
+        "description": "Highlight annotation attached to a text block."
+      },
+      "ApiGroupBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "GroupBlock"
+            ]
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiBlock"
+            }
+          },
+          "list": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bullet",
+                  "alphabetical",
+                  "numerical",
+                  "roman"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          "todo": {
+            "type": "object",
+            "properties": {
+              "isDone": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isDone"
+            ],
+            "additionalProperties": false
+          },
+          "toggle": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "isOpen": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "isOpen"
+            ],
+            "additionalProperties": false
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "blocks"
+        ],
+        "additionalProperties": false,
+        "description": "Container block that groups nested blocks (e.g. list or toggle group)."
+      },
+      "ApiGridBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "GridBlock"
+            ]
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ApiBlock"
+              }
+            }
+          },
+          "dividers": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "gridLayout": {
+            "type": "string",
+            "enum": [
+              "columns",
+              "grid"
+            ]
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "columns",
+          "dividers"
+        ],
+        "additionalProperties": false,
+        "description": "Multi-column layout; each column is an array of blocks."
+      },
+      "ApiCodeBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CodeBlock"
+            ]
+          },
+          "lang": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "lang",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "Fenced code block with language and source text."
+      },
+      "ApiMathBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "MathBlock"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "colorTheme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "Display math block (LaTeX)."
+      },
+      "ApiEntityBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "EntityBlock"
+            ]
+          },
+          "entityId": {
+            "nullable": true,
+            "type": "string"
+          },
+          "date": {
+            "description": "Date value when the embed targets a UtilDate object.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApiDatePayload"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "entityId"
+        ],
+        "additionalProperties": false,
+        "description": "Embedded Capacities object reference, or null when empty."
+      },
+      "ApiHorizontalLineBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "HorizontalLineBlock"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "additionalProperties": false,
+        "description": "Horizontal divider line."
+      },
+      "ApiUnsupportedBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "unsupported"
+            ]
+          },
+          "blockType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "blockType"
+        ],
+        "additionalProperties": false,
+        "description": "Placeholder for block types not available in the API."
+      },
+      "ApiIconOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "emoji",
+              "iconify"
+            ],
+            "description": "Icon variant — `emoji` for an emoji character, `iconify` for a regular Phosphor icon ID. See https://phosphoricons.com/."
+          },
+          "val": {
+            "type": "string",
+            "description": "The icon value. For `emoji`, use a single emoji. For `iconify`, use regular Phosphor `ph-name` syntax only, for example `ph-star`; styled variants such as `-duotone`, `-fill`, `-bold`, `-light`, and `-thin` are not accepted."
+          }
+        },
+        "required": [
+          "type",
+          "val"
+        ],
+        "additionalProperties": false,
+        "description": "Object or space icon value."
+      },
+      "ApiLabelOptionOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable option id from the property definition."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display label."
+          },
+          "color": {
+            "description": "Theme color key for the option, if set.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false,
+        "description": "Selectable option for single and multi label properties."
+      },
+      "ApiTitlePropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "title"
+            ]
+          },
+          "title": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Plain-text title value.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "title"
+        ],
+        "additionalProperties": false,
+        "description": "Title property value."
+      },
+      "ApiTextPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "text"
+            ]
+          },
+          "text": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Plain-text value.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "Plain-text property value."
+      },
+      "ApiNumberPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "number"
+            ]
+          },
+          "number": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Numeric value.",
+                "type": "number"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "number"
+        ],
+        "additionalProperties": false,
+        "description": "Number property value."
+      },
+      "ApiBooleanPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "boolean"
+            ]
+          },
+          "boolean": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Boolean value.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "boolean"
+        ],
+        "additionalProperties": false,
+        "description": "Boolean property value."
+      },
+      "ApiUrlPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "url"
+            ]
+          },
+          "url": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "URL string.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ],
+        "additionalProperties": false,
+        "description": "URL property value."
+      },
+      "ApiEntityPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "entity"
+            ]
+          },
+          "entity": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiEntityTargetOutput"
+            },
+            "description": "Linked objects by id (empty array clears the field)."
+          }
+        },
+        "required": [
+          "type",
+          "entity"
+        ],
+        "additionalProperties": false,
+        "description": "Entity property value."
+      },
+      "ApiEntityTargetOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Referenced object id."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false,
+        "description": "Referenced object in an entity property."
+      },
+      "ApiAliasesPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "aliases"
+            ]
+          },
+          "aliases": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Alias strings (at most 8 per object)."
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "aliases"
+        ],
+        "additionalProperties": false,
+        "description": "Aliases property value."
+      },
+      "ApiIconPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "icon"
+            ]
+          },
+          "icon": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true,
+                "description": "Icon value, or null to clear the icon.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ApiIconOutput"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "icon"
+        ],
+        "additionalProperties": false,
+        "description": "Icon property value."
+      },
+      "ApiCreatedAtPropertyOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "createdAt"
+            ]
+          },
+          "createdAt": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "ISO 8601 timestamp when the object was created."
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "description": "Object creation timestamp property value."
+      },
+      "ApiTextTokenOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "TextToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "style": {
+            "type": "object",
+            "properties": {
+              "bold": {
+                "type": "boolean"
+              },
+              "italic": {
+                "type": "boolean"
+              },
+              "strikethrough": {
+                "type": "boolean"
+              },
+              "underline": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "text-gray",
+                  "text-rose",
+                  "text-pink",
+                  "text-fuchsia",
+                  "text-purple",
+                  "text-violet",
+                  "text-indigo",
+                  "text-blue",
+                  "text-sky",
+                  "text-cyan",
+                  "text-teal",
+                  "text-emerald",
+                  "text-green",
+                  "text-lime",
+                  "text-yellow",
+                  "text-amber",
+                  "text-orange",
+                  "text-red"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "bg-gray",
+                  "bg-rose",
+                  "bg-pink",
+                  "bg-fuchsia",
+                  "bg-purple",
+                  "bg-violet",
+                  "bg-indigo",
+                  "bg-blue",
+                  "bg-sky",
+                  "bg-cyan",
+                  "bg-teal",
+                  "bg-emerald",
+                  "bg-green",
+                  "bg-lime",
+                  "bg-yellow",
+                  "bg-amber",
+                  "bg-orange",
+                  "bg-red"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "text",
+          "style"
+        ],
+        "additionalProperties": false,
+        "description": "Plain text with optional bold, italic, strikethrough, underline, and color."
+      },
+      "ApiMathTokenOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MathToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "Inline math (LaTeX)."
+      },
+      "ApiCodeTokenOutput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CodeToken"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "Inline code span."
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "x-scalar-environments": {
+    "production": {
+      "description": "Production",
+      "color": "#0082D0",
+      "variables": {
+        "apiUrl": {
+          "description": "Capacities API base URL",
+          "default": "https://api.capacities.io"
+        },
+        "apiToken": {
+          "description": "Bearer token (prefix cap-api-)",
+          "default": ""
+        }
+      }
+    },
+    "development": {
+      "description": "Local development",
+      "variables": {
+        "apiUrl": {
+          "description": "Local portal API base URL",
+          "default": "http://localhost:3000/api"
+        },
+        "apiToken": {
+          "description": "Bearer token (prefix cap-api-)",
+          "default": ""
+        }
+      }
+    }
+  },
+  "x-scalar-active-environment": "production"
+}
