@@ -29,6 +29,7 @@ import { registerSearch } from './commands/search.ts'
 import { registerGet } from './commands/get.ts'
 import { registerLink } from './commands/link.ts'
 import { registerCreate } from './commands/create.ts'
+import { registerUpdate } from './commands/update.ts'
 
 export function createCLI(): Command {
   const program = new Command('capacities')
@@ -46,6 +47,7 @@ export function createCLI(): Command {
   registerGet(program)
   registerLink(program)
   registerCreate(program)
+  registerUpdate(program)
 
   return program
 }
