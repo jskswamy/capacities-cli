@@ -35,12 +35,17 @@ export function createCLI(): Command {
   const program = new Command('capacities')
   program
     .version('0.1.0')
-    .exitOverride() // throw CommanderError instead of process.exit
+    .exitOverride()
     .option('-s, --space <name>', 'override active space')
     .option('--json', 'output raw JSON')
     .option('-q, --quiet', 'suppress output')
-    .option('--no-color', 'disable ANSI colors')
-    .option('--debug', 'set log level to debug')
+    .option('--no-color', 'disable ANSI colors', false)
+    .option('--debug', 'set log level to debug for this invocation', false)
+    .hook('preAction', (thisCommand) => {
+      const opts = thisCommand.opts()
+      if (opts.debug) process.env.CAPACITIES_LOG_LEVEL = 'debug'
+      if (opts.noColor || opts.color === false) process.env.NO_COLOR = '1'
+    })
 
   registerAuth(program)
   registerSearch(program)
