@@ -27,6 +27,7 @@ import { logger } from './logger.ts'
 import { registerAuth } from './commands/auth.ts'
 import { registerSearch } from './commands/search.ts'
 import { registerGet } from './commands/get.ts'
+import { registerLink } from './commands/link.ts'
 
 export function createCLI(): Command {
   const program = new Command('capacities')
@@ -42,6 +43,7 @@ export function createCLI(): Command {
   registerAuth(program)
   registerSearch(program)
   registerGet(program)
+  registerLink(program)
 
   return program
 }
