@@ -20,36 +20,37 @@
  * SOFTWARE.
  */
 
-// src/index.ts
-import { Command, CommanderError } from 'commander'
-import { ExitError, ExitCode, formatError } from './errors.ts'
-import { logger } from './logger.ts'
-import { registerAuth } from './commands/auth.ts'
+// tests/unit/commands/auth.test.ts
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
 
-export function createCLI(): Command {
-  const program = new Command('capacities')
-  program
-    .version('0.1.0')
-    .exitOverride() // throw CommanderError instead of process.exit
-    .option('-s, --space <name>', 'override active space')
-    .option('--json', 'output raw JSON')
-    .option('-q, --quiet', 'suppress output')
-    .option('--no-color', 'disable ANSI colors')
-    .option('--debug', 'set log level to debug')
+vi.mock('@capacities/api', () => ({
+  CapacitiesClient: vi.fn().mockImplementation(() => ({
+    space: { get: vi.fn().mockResolvedValue({ id: 'space-123', name: 'My Space' }) },
+  })),
+}))
 
-  registerAuth(program)
+describe('auth list', () => {
+  let tmpDir: string
+  let outSpy: ReturnType<typeof vi.spyOn>
 
-  return program
-}
-
-// Entry point when executed directly
-const isMain = process.argv[1]?.endsWith('index.js') || process.argv[1]?.endsWith('index.ts')
-if (isMain) {
-  const program = createCLI()
-  program.parseAsync(process.argv).catch((err: unknown) => {
-    if (err instanceof ExitError) process.exit(err.code)
-    if (err instanceof CommanderError) process.exit(err.exitCode)
-    logger.error(formatError(err))
-    process.exit(ExitCode.UNEXPECTED)
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-auth-'))
+    process.env.XDG_CONFIG_HOME = tmpDir
+    outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
   })
-}
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true })
+    delete process.env.XDG_CONFIG_HOME
+    vi.restoreAllMocks()
+  })
+
+  it('shows "no spaces" when config is empty', async () => {
+    const { listSpaces } = await import('../../../src/commands/auth.ts')
+    await listSpaces({})
+    expect(outSpy).toHaveBeenCalledWith(expect.stringContaining('no spaces'))
+  })
+})

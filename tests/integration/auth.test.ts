@@ -20,36 +20,20 @@
  * SOFTWARE.
  */
 
-// src/index.ts
-import { Command, CommanderError } from 'commander'
-import { ExitError, ExitCode, formatError } from './errors.ts'
-import { logger } from './logger.ts'
-import { registerAuth } from './commands/auth.ts'
+// tests/integration/auth.test.ts
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import { server, runCLI } from './helpers.ts'
 
-export function createCLI(): Command {
-  const program = new Command('capacities')
-  program
-    .version('0.1.0')
-    .exitOverride() // throw CommanderError instead of process.exit
-    .option('-s, --space <name>', 'override active space')
-    .option('--json', 'output raw JSON')
-    .option('-q, --quiet', 'suppress output')
-    .option('--no-color', 'disable ANSI colors')
-    .option('--debug', 'set log level to debug')
+beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
-  registerAuth(program)
-
-  return program
-}
-
-// Entry point when executed directly
-const isMain = process.argv[1]?.endsWith('index.js') || process.argv[1]?.endsWith('index.ts')
-if (isMain) {
-  const program = createCLI()
-  program.parseAsync(process.argv).catch((err: unknown) => {
-    if (err instanceof ExitError) process.exit(err.code)
-    if (err instanceof CommanderError) process.exit(err.exitCode)
-    logger.error(formatError(err))
-    process.exit(ExitCode.UNEXPECTED)
+describe('capacities auth list', () => {
+  it('outputs "no spaces" when no config exists', async () => {
+    const { exitCode, stdout } = await runCLI(['auth', 'list'], {
+      CAPACITIES_CONFIG: '/tmp/nonexistent-cap-config.toml',
+    })
+    expect(exitCode).toBe(0)
+    expect(stdout.toLowerCase()).toContain('no spaces')
   })
-}
+})
