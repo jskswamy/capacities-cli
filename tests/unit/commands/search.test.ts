@@ -78,4 +78,30 @@ describe('search command', () => {
     await runSearch('test', undefined, {})
     expect(mockSearch).toHaveBeenCalledTimes(1) // second call is cache hit
   })
+
+  it('resolves structure id when --type is provided', async () => {
+    mockStructures.mockResolvedValue({
+      structures: [{ id: 'st-1', objectTypeId: 'st-1', title: 'Page' }],
+    })
+    mockSearch.mockResolvedValue({ results: [] })
+    const { runSearch } = await import('../../../src/commands/search.ts')
+    await runSearch('hello', 'Page', {})
+    expect(mockStructures).toHaveBeenCalled()
+    expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({ query: 'hello' }))
+  })
+
+  it('throws NOT_FOUND when type is unknown', async () => {
+    mockStructures.mockResolvedValue({ structures: [{ id: 'st-1', title: 'Page' }] })
+    const { runSearch } = await import('../../../src/commands/search.ts')
+    await expect(runSearch('hello', 'Unknown', {})).rejects.toThrow('Unknown type')
+  })
+
+  it('prints json when json option is set', async () => {
+    const data = { results: [{ id: 'x', title: 'T', objectTypeId: 'o' }] }
+    mockSearch.mockResolvedValue(data)
+    const { runSearch } = await import('../../../src/commands/search.ts')
+    await runSearch('q', undefined, { json: true })
+    const written = outSpy.mock.calls.map(c => c[0]).join('')
+    expect(JSON.parse(written)).toMatchObject(data)
+  })
 })

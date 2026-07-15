@@ -25,6 +25,7 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const OBJECT_FIXTURE = { id: 'org-1', title: 'Stanford', objectType: 'Organization' }
+const MARKDOWN_FIXTURE = { id: 'org-1', structureId: 'RootEntity', markdown: '---\ntype: Organization\ntitle: Stanford\n---\n' }
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
 afterEach(() => server.resetHandlers())
@@ -39,7 +40,7 @@ describe('capacities link', () => {
         return HttpResponse.json(OBJECT_FIXTURE)
       }),
       http.get('https://api.capacities.io/object/markdown', () =>
-        HttpResponse.text('---\ntype: Organization\ntitle: Stanford\n---\n')
+        HttpResponse.json(MARKDOWN_FIXTURE)
       )
     )
 

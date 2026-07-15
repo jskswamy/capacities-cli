@@ -25,16 +25,16 @@ import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
 import { createClient } from '../client.ts'
 import { cacheBust } from '../cache.ts'
-import { writeObjectFile } from '../objects.ts'
-import { handleApiError } from '../errors.ts'
-import { printLine, type OutputOptions } from '../output.ts'
+import { fetchAndPersist } from '../objects.ts'
+import { handleApiError, formatError } from '../errors.ts'
+import { printLine, type CommandOptions } from '../output.ts'
 import { logger } from '../logger.ts'
 
 export async function runUpdate(
   objectId: string,
   propertyKey: string,
   value: string,
-  opts: OutputOptions & { space?: string }
+  opts: CommandOptions
 ): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
@@ -48,17 +48,11 @@ export async function runUpdate(
 
   cacheBust(space.name, `object/${objectId}.json`)
 
-  // Write-through: fetch fresh markdown and rewrite objectsDir
   if (space.objectsDir) {
     try {
-      const markdown = await client.object.markdown.get({ objectId })
-      const typeMatch = markdown.match(/^type:\s*(.+)$/m)
-      const titleMatch = markdown.match(/^title:\s*(.+)$/m)
-      if (typeMatch && titleMatch) {
-        writeObjectFile(space.objectsDir, typeMatch[1].trim(), titleMatch[1].trim(), markdown)
-      }
+      await fetchAndPersist(client, space.objectsDir, objectId)
     } catch (e) {
-      logger.warn(`objectsDir rewrite failed: ${e instanceof Error ? e.message : String(e)}`)
+      logger.warn(`objectsDir rewrite failed: ${formatError(e)}`)
     }
   }
 

@@ -25,16 +25,16 @@ import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
 import { createClient } from '../client.ts'
 import { cacheBust } from '../cache.ts'
-import { writeObjectFile } from '../objects.ts'
-import { handleApiError } from '../errors.ts'
-import { printLine, type OutputOptions } from '../output.ts'
+import { fetchAndPersist } from '../objects.ts'
+import { handleApiError, formatError } from '../errors.ts'
+import { printLine, type CommandOptions } from '../output.ts'
 import { logger } from '../logger.ts'
 
 export async function runLink(
   objectId: string,
   propertyKey: string,
   targetIds: string[],
-  opts: OutputOptions & { space?: string }
+  opts: CommandOptions
 ): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
@@ -52,18 +52,11 @@ export async function runLink(
   cacheBust(space.name, `object/${objectId}.json`)
   logger.debug(`cache busted object/${objectId}.json after link`)
 
-  // Write-through: fetch updated markdown and persist to objectsDir
   if (space.objectsDir) {
     try {
-      const markdown = await client.object.markdown.get({ objectId })
-      // Parse type and title from markdown frontmatter for file path
-      const typeMatch = (typeof markdown === 'string' ? markdown : '').match(/^type:\s*(.+)$/m)
-      const titleMatch = (typeof markdown === 'string' ? markdown : '').match(/^title:\s*(.+)$/m)
-      if (typeMatch && titleMatch) {
-        writeObjectFile(space.objectsDir, typeMatch[1].trim(), titleMatch[1].trim(), typeof markdown === 'string' ? markdown : '')
-      }
+      await fetchAndPersist(client, space.objectsDir, objectId)
     } catch (e) {
-      logger.warn(`objectsDir write failed: ${e instanceof Error ? e.message : String(e)}`)
+      logger.warn(`objectsDir write failed: ${formatError(e)}`)
     }
   }
 

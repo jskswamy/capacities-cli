@@ -22,7 +22,7 @@
 
 // src/index.ts
 import { Command, CommanderError } from 'commander'
-import { ExitError, ExitCode, formatError } from './errors.ts'
+import { ExitError, ExitCode, CapacitiesError, toExitCode, formatError } from './errors.ts'
 import { logger } from './logger.ts'
 import { registerAuth } from './commands/auth.ts'
 import { registerSearch } from './commands/search.ts'
@@ -64,6 +64,7 @@ if (isMain) {
   program.parseAsync(process.argv).catch((err: unknown) => {
     if (err instanceof ExitError) process.exit(err.code)
     if (err instanceof CommanderError) process.exit(err.exitCode)
+    if (err instanceof CapacitiesError) { logger.error(formatError(err)); process.exit(toExitCode(err)) }
     logger.error(formatError(err))
     process.exit(ExitCode.UNEXPECTED)
   })
