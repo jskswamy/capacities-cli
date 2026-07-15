@@ -25,6 +25,7 @@ import { Command, CommanderError } from 'commander'
 import { ExitError, ExitCode, formatError } from './errors.ts'
 import { logger } from './logger.ts'
 import { registerAuth } from './commands/auth.ts'
+import { registerSearch } from './commands/search.ts'
 
 export function createCLI(): Command {
   const program = new Command('capacities')
@@ -38,6 +39,7 @@ export function createCLI(): Command {
     .option('--debug', 'set log level to debug')
 
   registerAuth(program)
+  registerSearch(program)
 
   return program
 }

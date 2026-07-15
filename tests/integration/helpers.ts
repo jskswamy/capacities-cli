@@ -27,7 +27,7 @@ import OpenAPIBackend from 'openapi-backend'
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { ExitError } from '../../src/errors.ts'
+import { ExitError, CapacitiesError, toExitCode, formatError } from '../../src/errors.ts'
 import { CommanderError } from 'commander'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -60,6 +60,7 @@ export async function runCLI(args: string[], env: Record<string, string> = {}): 
   } catch (err) {
     if (err instanceof ExitError) exitCode = err.code
     else if (err instanceof CommanderError) exitCode = err.exitCode
+    else if (err instanceof CapacitiesError) { process.stderr.write(formatError(err) + '\n'); exitCode = toExitCode(err) }
     else exitCode = 1
   } finally {
     process.stdout.write = origStdoutWrite

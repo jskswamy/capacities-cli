@@ -60,15 +60,17 @@ export function formatError(err: unknown): string {
 
 export function handleApiError(err: unknown): never {
   if (!(err instanceof Error)) throw new CapacitiesError(ExitCode.UNEXPECTED, String(err))
+  // ponytail: check SDK's numeric .status field as well as message string for older/alternate error shapes
+  const status = (err as { status?: number }).status
   const msg = err.message
-  if (msg.includes('429')) {
+  if (status === 429 || msg.includes('429')) {
     const seconds = msg.match(/Retry-After[:\s]+(\d+)/i)?.[1] ?? 'unknown'
     throw new CapacitiesError(ExitCode.RATE_LIMIT, `Rate limit exceeded. Retry after ${seconds}s.`, err)
   }
-  if (msg.includes('401') || msg.includes('403')) {
+  if (status === 401 || status === 403 || msg.includes('401') || msg.includes('403')) {
     throw new CapacitiesError(ExitCode.CONFIG, `Authentication failed.`, err)
   }
-  if (msg.includes('404')) {
+  if (status === 404 || msg.includes('404')) {
     throw new CapacitiesError(ExitCode.NOT_FOUND, msg, err)
   }
   throw new CapacitiesError(ExitCode.API, `API error: ${msg}`, err)
