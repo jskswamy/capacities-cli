@@ -1,5 +1,7 @@
 # capacities-cli
 
+[![CI](https://github.com/jskswamy/capacities-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/jskswamy/capacities-cli/actions/workflows/ci.yml)
+
 An unofficial community CLI for [Capacities](https://capacities.io) — script and automate your knowledge base from the terminal.
 
 > **Beta.** This is a community tool built while an official CLI does not exist. Once Capacities ships an official CLI, this project will align its UX with the official tool and retire or evolve depending on what the official one covers. If the official one is open-sourced, relevant contributions will go upstream.
