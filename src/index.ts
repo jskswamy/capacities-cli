@@ -21,6 +21,7 @@
  */
 
 // src/index.ts
+import { realpathSync } from 'fs'
 import { Command, CommanderError } from 'commander'
 import { ExitError, ExitCode, CapacitiesError, toExitCode, formatError } from './errors.ts'
 import { logger } from './logger.ts'
@@ -57,8 +58,13 @@ export function createCLI(): Command {
   return program
 }
 
-// Entry point when executed directly
-const isMain = process.argv[1]?.endsWith('index.js') || process.argv[1]?.endsWith('index.ts')
+// Entry point when executed directly — resolve symlinks so `capacities` → dist/index.js works
+const isMain = (() => {
+  try {
+    const real = realpathSync(process.argv[1] ?? '')
+    return real.endsWith('index.js') || real.endsWith('index.ts')
+  } catch { return false }
+})()
 if (isMain) {
   const program = createCLI()
   program.parseAsync(process.argv).catch((err: unknown) => {

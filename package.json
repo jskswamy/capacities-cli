@@ -4,7 +4,8 @@
   "description": "CLI for the Capacities REST API",
   "type": "module",
   "bin": {
-    "capacities": "./dist/index.js"
+    "capacities": "./dist/index.js",
+    "cap": "./dist/index.js"
   },
   "engines": {
     "node": ">=20"
@@ -12,6 +13,7 @@
   "scripts": {
     "build": "tsc --noEmit && tsup",
     "dev": "tsx src/index.ts",
+    "link-bin": "npm run build && chmod +x dist/index.js && ln -sf \"$(pwd)/dist/index.js\" \"${CAPACITIES_BIN_DIR:-$HOME/.local/bin}/capacities\" && ln -sf \"$(pwd)/dist/index.js\" \"${CAPACITIES_BIN_DIR:-$HOME/.local/bin}/cap\" && echo \"Linked to ${CAPACITIES_BIN_DIR:-$HOME/.local/bin}/{capacities,cap}\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run tests/integration",
