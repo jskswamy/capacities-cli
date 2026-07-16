@@ -40,17 +40,23 @@ export type SecretsToml = {
   expires_at?: number
 }
 
+function extractKeyLine(content: string, source: string): string {
+  const keyLine = content.split('\n').find(l => l.startsWith('AGE-SECRET-KEY-'))
+  if (!keyLine) throw new CapacitiesError(ExitCode.CONFIG, `No AGE-SECRET-KEY-1... line found in ${source}`)
+  return keyLine.trim()
+}
+
 export function resolveIdentity(): string {
-  if (process.env.CAPACITIES_AGE_KEY) return process.env.CAPACITIES_AGE_KEY.trim()
+  if (process.env.CAPACITIES_AGE_KEY) {
+    const val = process.env.CAPACITIES_AGE_KEY.trim()
+    // Accept both a bare key and multi-line key file contents pasted into the env var
+    return val.startsWith('AGE-SECRET-KEY-') ? val : extractKeyLine(val, 'CAPACITIES_AGE_KEY')
+  }
   const keyFile = process.env.CAPACITIES_AGE_KEY_FILE ?? path.join(os.homedir(), '.age', 'key.txt')
   if (!fs.existsSync(keyFile)) {
-    throw new CapacitiesError(ExitCode.CONFIG, `Cannot decrypt secrets. Set CAPACITIES_AGE_KEY_FILE or CAPACITIES_AGE_KEY`)
+    throw new CapacitiesError(ExitCode.CONFIG, `Age key not found. Run: capacities auth keygen  or set CAPACITIES_AGE_KEY`)
   }
-  // Key file has comment lines (#) then the AGE-SECRET-KEY-1... line
-  const content = fs.readFileSync(keyFile, 'utf8')
-  const keyLine = content.split('\n').find(l => l.startsWith('AGE-SECRET-KEY-'))
-  if (!keyLine) throw new CapacitiesError(ExitCode.CONFIG, `Invalid age key file: no AGE-SECRET-KEY-1 line in ${keyFile}`)
-  return keyLine.trim()
+  return extractKeyLine(fs.readFileSync(keyFile, 'utf8'), keyFile)
 }
 
 export async function decryptSecrets(spaceFile: string): Promise<SecretsToml> {
@@ -62,14 +68,23 @@ export async function decryptSecrets(spaceFile: string): Promise<SecretsToml> {
   const a = await age()
   const d = new a.Decrypter()
   d.addIdentity(identity)
-  const plaintext = d.decrypt(ciphertext, 'text')
-  return smolToml.parse(plaintext) as SecretsToml
+  try {
+    const plaintext = d.decrypt(ciphertext, 'text')
+    return smolToml.parse(plaintext) as SecretsToml
+  } catch (e) {
+    throw new CapacitiesError(ExitCode.CONFIG, `Failed to decrypt secrets: ${e instanceof Error ? e.message : String(e)}`)
+  }
 }
 
 export async function encryptSecrets(spaceFile: string, secrets: SecretsToml): Promise<void> {
   const identity = resolveIdentity()
   const a = await age()
-  const recipient = a.identityToRecipient(identity)
+  let recipient: string
+  try {
+    recipient = a.identityToRecipient(identity)
+  } catch (e) {
+    throw new CapacitiesError(ExitCode.CONFIG, `Invalid age identity. CAPACITIES_AGE_KEY must start with AGE-SECRET-KEY-1...`)
+  }
   const e = new a.Encrypter()
   e.addRecipient(recipient)
   const ciphertext = e.encrypt(serializeSecrets(secrets))
@@ -79,7 +94,7 @@ export async function encryptSecrets(spaceFile: string, secrets: SecretsToml): P
   fs.renameSync(tmp, spaceFile)
 }
 
-function serializeSecrets(s: SecretsToml): string {
+export function serializeSecrets(s: SecretsToml): string {
   const lines = [`auth_type = "${s.auth_type}"`]
   if (s.api_token)    lines.push(`api_token = "${s.api_token}"`)
   if (s.client_id)    lines.push(`client_id = "${s.client_id}"`)

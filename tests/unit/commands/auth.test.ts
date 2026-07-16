@@ -53,6 +53,7 @@ vi.mock('../../../src/secrets.ts', () => ({
   encryptSecrets: mockEncryptSecrets,
   decryptSecrets: mockDecryptSecrets,
   generateAgeKeypair: mockGenerateAgeKeypair,
+  serializeSecrets: vi.fn((s: Record<string, unknown>) => `auth_type = "${s.auth_type}"\n`),
 }))
 
 vi.mock('@capacities/api', () => ({

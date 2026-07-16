@@ -31,7 +31,7 @@ import {
   readConfig, writeConfig, getSpaceFile, getDefaultObjectsDir,
   type ResolvedSpace,
 } from '../config.ts'
-import { decryptSecrets, encryptSecrets, generateAgeKeypair } from '../secrets.ts'
+import { decryptSecrets, encryptSecrets, generateAgeKeypair, serializeSecrets } from '../secrets.ts'
 import { createClient } from '../client.ts'
 import { cacheDeleteSpace } from '../cache.ts'
 import { CapacitiesError, ExitCode, exit, handleApiError } from '../errors.ts'
@@ -75,93 +75,94 @@ function promptLine(question: string, defaultVal: string): Promise<string> {
   })
 }
 
-export async function addSpace(name: string, opts: OutputOptions): Promise<void> {
+async function editWithTempFile(
+  prefix: string,
+  initial: string,
+  onSave: (content: string) => Promise<void>
+): Promise<void> {
+  const tmpFile = path.join(os.tmpdir(), `${prefix}-${process.pid}.toml`)
+  fs.writeFileSync(tmpFile, initial, { mode: 0o600 })
+  try {
+    openEditor(tmpFile)
+    await onSave(fs.readFileSync(tmpFile, 'utf8'))
+  } finally {
+    if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile)
+  }
+}
+
+async function saveSpace(
+  name: string,
+  objectsDir: string,
+  token: string,
+  opts: OutputOptions
+): Promise<void> {
+  if (!token.startsWith('cap-api-')) {
+    throw new CapacitiesError(ExitCode.CONFIG, `Invalid token format. Expected "cap-api-..." prefix.`)
+  }
+  const client = createClient({ name, objectsDir, authType: 'api_token', apiToken: token } as ResolvedSpace)
+  try {
+    await client.space.get()
+  } catch (err) {
+    throw new CapacitiesError(ExitCode.CONFIG, `Token verification failed. Check the token is valid.`, err)
+  }
+  await encryptSecrets(getSpaceFile(name), { auth_type: 'api_token', api_token: token })
+  const config = readConfig()
+  config.spaces ??= {}
+  config.spaces[name] ??= {}
+  config.spaces[name].objects_dir = objectsDir
+  if (!config.active_space) config.active_space = name
+  writeConfig(config)
+  printLine(`Space "${name}" added.`, opts)
+}
+
+export async function addSpace(
+  name: string,
+  opts: OutputOptions,
+  token?: string
+): Promise<void> {
   const defaultObjDir = getDefaultObjectsDir(name)
   const objectsDir = await promptLine('Objects directory', defaultObjDir)
+
+  if (token) {
+    await saveSpace(name, objectsDir, token, opts)
+    return
+  }
 
   const template = [
     `# Space: ${name}`,
     `# Paste your Capacities API token below.`,
     `# Get it from: Capacities Settings → Capacities API → New Token`,
-    `# Or set auth_type = "oauth" and run: capacities auth oauth ${name}`,
     ``,
     `auth_type = "api_token"`,
     `api_token = ""`,
   ].join('\n')
 
-  const tmpFile = path.join(os.tmpdir(), `cap-auth-${name}-${process.pid}.toml`)
-  fs.writeFileSync(tmpFile, template, { mode: 0o600 })
-
-  try {
-    openEditor(tmpFile)
-    const content = fs.readFileSync(tmpFile, 'utf8')
-
+  await editWithTempFile(`cap-auth-${name}`, template, async (content) => {
     if (content === template || content.includes(`api_token = ""`)) {
-      exit(ExitCode.CONFIG)
+      throw new CapacitiesError(ExitCode.CONFIG, `No token entered. Re-run with --token cap-api-... to skip the editor.`)
     }
-
-    // Validate TOML
     const { parse } = await import('smol-toml')
     const parsed = parse(content) as { auth_type: string; api_token?: string }
-
     if (parsed.auth_type === 'api_token') {
-      if (!parsed.api_token?.startsWith('cap-api-')) {
-        throw new CapacitiesError(ExitCode.CONFIG, `Invalid token format. Expected "cap-api-..." prefix.`)
-      }
-      // Verify token is live
-      const client = createClient({ name, objectsDir, authType: 'api_token', apiToken: parsed.api_token } as ResolvedSpace)
-      try {
-        await client.space.get()
-      } catch (err) {
-        throw new CapacitiesError(ExitCode.CONFIG, `Token verification failed. Check the token is valid.`, err)
-      }
+      await saveSpace(name, objectsDir, parsed.api_token ?? '', opts)
     }
-
-    await encryptSecrets(getSpaceFile(name), parsed as Parameters<typeof encryptSecrets>[1])
-
-    const config = readConfig()
-    config.spaces ??= {}
-    config.spaces[name] ??= {}
-    config.spaces[name].objects_dir = objectsDir
-    if (!config.active_space) config.active_space = name
-    writeConfig(config)
-
-    printLine(`Space "${name}" added.`, opts)
-  } finally {
-    if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile)
-  }
+  })
 }
 
 export async function editSpace(name: string, opts: OutputOptions): Promise<void> {
   const spaceFile = getSpaceFile(name)
   const secrets = await decryptSecrets(spaceFile)
 
-  const serializeSecrets = (s: typeof secrets) => {
-    const lines = [`auth_type = "${s.auth_type}"`]
-    if (s.api_token) lines.push(`api_token = "${s.api_token}"`)
-    if (s.client_id) lines.push(`client_id = "${s.client_id}"`)
-    if (s.access_token) lines.push(`access_token = "${s.access_token}"`)
-    if (s.refresh_token) lines.push(`refresh_token = "${s.refresh_token}"`)
-    if (s.expires_at) lines.push(`expires_at = ${s.expires_at}`)
-    return lines.join('\n') + '\n'
-  }
-
   const original = serializeSecrets(secrets)
-  const tmpFile = path.join(os.tmpdir(), `cap-edit-${name}-${process.pid}.toml`)
-  fs.writeFileSync(tmpFile, original, { mode: 0o600 })
 
-  try {
-    openEditor(tmpFile)
-    const updated = fs.readFileSync(tmpFile, 'utf8')
+  await editWithTempFile(`cap-edit-${name}`, original, async (updated) => {
     if (updated === original) { printLine('No changes.', opts); return }
 
     const { parse } = await import('smol-toml')
     const parsed = parse(updated) as Parameters<typeof encryptSecrets>[1]
     await encryptSecrets(spaceFile, parsed)
     printLine(`Space "${name}" updated.`, opts)
-  } finally {
-    if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile)
-  }
+  })
 }
 
 export function useSpace(name: string, opts: OutputOptions): void {
@@ -202,10 +203,12 @@ export async function keygenCommand(opts: OutputOptions): Promise<void> {
 export function registerAuth(program: Command): void {
   const auth = program.command('auth').description('Manage space credentials')
 
-  auth.command('add <name>').description('Add a new space').action(async (name: string) => {
-    const opts = program.opts()
-    await addSpace(name, opts).catch(handleApiError)
-  })
+  auth.command('add <name>').description('Add a new space')
+    .option('--token <token>', 'API token (skips editor)')
+    .action(async (name: string, cmdOpts: { token?: string }) => {
+      const opts = program.opts()
+      await addSpace(name, opts, cmdOpts.token).catch(handleApiError)
+    })
 
   auth.command('edit <name>').description('Edit secrets for a space').action(async (name: string) => {
     const opts = program.opts()
