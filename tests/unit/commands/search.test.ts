@@ -50,8 +50,8 @@ describe('search command', () => {
     errSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
 
     // Write minimal config
-    fs.mkdirSync(path.join(tmpDir, 'capacities-cli'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, 'capacities-cli', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n')
+    fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
+    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n')
   })
 
   afterEach(() => {

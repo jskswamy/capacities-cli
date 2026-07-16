@@ -64,8 +64,8 @@ vi.mock('@capacities/api', () => ({
 
 // --- helpers ---
 function makeConfig(tmpDir: string, content = 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n') {
-  fs.mkdirSync(path.join(tmpDir, 'capacities-cli'), { recursive: true })
-  fs.writeFileSync(path.join(tmpDir, 'capacities-cli', 'config.toml'), content)
+  fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
+  fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), content)
 }
 
 // ponytail: restore only explicit spies, not vi.restoreAllMocks() which resets vi.fn() impls
@@ -147,7 +147,7 @@ describe('auth removeSpace', () => {
     process.env.XDG_CACHE_HOME = tmpDir
     outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     errSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
-    fs.mkdirSync(path.join(tmpDir, 'capacities-cli', 'spaces'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'capacities', 'spaces'), { recursive: true })
     makeConfig(tmpDir)
   })
   afterEach(() => {
@@ -164,7 +164,7 @@ describe('auth removeSpace', () => {
   })
 
   it('removes space file if it exists', async () => {
-    const spaceFile = path.join(tmpDir, 'capacities-cli', 'spaces', 'personal.age')
+    const spaceFile = path.join(tmpDir, 'capacities', 'spaces', 'personal.age')
     fs.writeFileSync(spaceFile, 'dummy')
     const { removeSpace } = await import('../../../src/commands/auth.ts')
     removeSpace('personal', {})
@@ -201,13 +201,13 @@ describe('auth keygenCommand', () => {
     const { keygenCommand } = await import('../../../src/commands/auth.ts')
     await keygenCommand({})
     expect(mockGenerateAgeKeypair).toHaveBeenCalled()
-    const keyFile = path.join(homeDir, '.age', 'key.txt')
+    const keyFile = path.join(tmpDir, 'age', 'capacities.txt')
     expect(fs.existsSync(keyFile)).toBe(true)
     expect(outSpy).toHaveBeenCalledWith(expect.stringContaining('age1xyz'))
   })
 
   it('throws if key file already exists', async () => {
-    const keyFile = path.join(homeDir, '.age', 'key.txt')
+    const keyFile = path.join(tmpDir, 'age', 'capacities.txt')
     fs.mkdirSync(path.dirname(keyFile), { recursive: true })
     fs.writeFileSync(keyFile, 'existing')
     const { keygenCommand } = await import('../../../src/commands/auth.ts')
@@ -227,7 +227,7 @@ describe('auth addSpace', () => {
     process.env.XDG_DATA_HOME = tmpDir
     outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     errSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
-    fs.mkdirSync(path.join(tmpDir, 'capacities-cli'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
     spawnSyncMock.mockImplementation((_editor: string, args: string[]) => {
       const file = args[0]
       if (file && fs.existsSync(file)) {
@@ -269,7 +269,7 @@ describe('auth editSpace', () => {
     process.env.XDG_CONFIG_HOME = tmpDir
     outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     errSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
-    fs.mkdirSync(path.join(tmpDir, 'capacities-cli', 'spaces'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'capacities', 'spaces'), { recursive: true })
     makeConfig(tmpDir)
     mockDecryptSecrets.mockResolvedValue({ auth_type: 'api_token', api_token: 'cap-api-old' })
     mockEncryptSecrets.mockResolvedValue(undefined)

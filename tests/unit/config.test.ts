@@ -53,7 +53,7 @@ describe('config', () => {
 
   it('getConfigPath uses XDG_CONFIG_HOME', async () => {
     const { getConfigPath } = await import('../../src/config.ts')
-    expect(getConfigPath()).toBe(path.join(tmpDir, 'capacities-cli', 'config.toml'))
+    expect(getConfigPath()).toBe(path.join(tmpDir, 'capacities', 'config.toml'))
   })
 
   it('CAPACITIES_CONFIG overrides config path', async () => {

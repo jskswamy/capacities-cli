@@ -46,8 +46,8 @@ describe('get command', () => {
     process.env.CAPACITIES_SPACE = 'personal'
     outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     errSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
-    fs.mkdirSync(path.join(tmpDir, 'capacities-cli'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, 'capacities-cli', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n')
+    fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
+    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n')
   })
 
   afterEach(() => {

@@ -38,9 +38,9 @@ describe('resolveSpace', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-space-'))
     process.env.XDG_CONFIG_HOME = tmpDir
-    fs.mkdirSync(path.join(tmpDir, 'capacities-cli'), { recursive: true })
+    fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
     fs.writeFileSync(
-      path.join(tmpDir, 'capacities-cli', 'config.toml'),
+      path.join(tmpDir, 'capacities', 'config.toml'),
       'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n'
     )
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)

@@ -23,9 +23,9 @@
 // src/secrets.ts
 import init from 'age-encryption'
 import * as fs from 'fs'
-import * as os from 'os'
 import * as path from 'path'
 import * as smolToml from 'smol-toml'
+import { getAgeKeyFile } from './config.ts'
 import { CapacitiesError, ExitCode } from './errors.ts'
 
 // age-encryption 0.1.x exports a default init() that returns the age API object
@@ -52,7 +52,7 @@ export function resolveIdentity(): string {
     // Accept both a bare key and multi-line key file contents pasted into the env var
     return val.startsWith('AGE-SECRET-KEY-') ? val : extractKeyLine(val, 'CAPACITIES_AGE_KEY')
   }
-  const keyFile = process.env.CAPACITIES_AGE_KEY_FILE ?? path.join(os.homedir(), '.age', 'key.txt')
+  const keyFile = getAgeKeyFile()
   if (!fs.existsSync(keyFile)) {
     throw new CapacitiesError(ExitCode.CONFIG, `Age key not found. Run: capacities auth keygen  or set CAPACITIES_AGE_KEY`)
   }

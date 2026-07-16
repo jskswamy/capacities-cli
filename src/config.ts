@@ -45,17 +45,20 @@ function cacheHome(): string  { return process.env.XDG_CACHE_HOME  ?? path.join(
 function getDataHome(): string { return process.env.XDG_DATA_HOME ?? path.join(os.homedir(), '.local', 'share') }
 
 export function getConfigPath(): string {
-  return process.env.CAPACITIES_CONFIG ?? path.join(configHome(), 'capacities-cli', 'config.toml')
+  return process.env.CAPACITIES_CONFIG ?? path.join(configHome(), 'capacities', 'config.toml')
 }
-function getSpacesDir(): string { return path.join(configHome(), 'capacities-cli', 'spaces') }
+function getSpacesDir(): string { return path.join(configHome(), 'capacities', 'spaces') }
 export function getSpaceFile(name: string): string { return path.join(getSpacesDir(), `${name}.age`) }
+export function getAgeKeyFile(): string {
+  return process.env.CAPACITIES_AGE_KEY_FILE ?? path.join(configHome(), 'age', 'capacities.txt')
+}
 export function getCacheDir(spaceName: string): string {
-  const base = process.env.CAPACITIES_CACHE_DIR ?? path.join(cacheHome(), 'capacities-cli')
+  const base = process.env.CAPACITIES_CACHE_DIR ?? path.join(cacheHome(), 'capacities')
   return path.join(base, spaceName)
 }
 export function getDefaultObjectsDir(spaceName: string): string {
   return process.env.CAPACITIES_OBJECTS_DIR
-    ?? path.join(getDataHome(), 'capacities-cli', spaceName, 'objects')
+    ?? path.join(getDataHome(), 'capacities', spaceName, 'objects')
 }
 
 export function readConfig(): Config {

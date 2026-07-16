@@ -28,7 +28,7 @@ import * as path from 'path'
 import * as readline from 'readline'
 import { spawnSync } from 'child_process'
 import {
-  readConfig, writeConfig, getSpaceFile, getDefaultObjectsDir,
+  readConfig, writeConfig, getSpaceFile, getDefaultObjectsDir, getAgeKeyFile,
   type ResolvedSpace,
 } from '../config.ts'
 import { decryptSecrets, encryptSecrets, generateAgeKeypair, serializeSecrets } from '../secrets.ts'
@@ -189,7 +189,7 @@ export function removeSpace(name: string, opts: OutputOptions): void {
 }
 
 export async function keygenCommand(opts: OutputOptions): Promise<void> {
-  const keyFile = path.join(os.homedir(), '.age', 'key.txt')
+  const keyFile = getAgeKeyFile()
   if (fs.existsSync(keyFile)) {
     throw new CapacitiesError(ExitCode.CONFIG, `Key file already exists: ${keyFile}. Delete it first to regenerate.`)
   }
