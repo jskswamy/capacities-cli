@@ -65,13 +65,15 @@ describe('search command', () => {
   })
 
   it('calls objects.search with the query', async () => {
-    mockSearch.mockResolvedValue({ results: [{ id: 'abc', title: 'Stanford', objectTypeId: 'org' }] })
+    mockStructures.mockResolvedValue({ structures: [] })
+    mockSearch.mockResolvedValue({ results: [{ id: 'abc', structureId: 'RootPage', title: 'Stanford' }] })
     const { runSearch } = await import('../../../src/commands/search.ts')
     await runSearch('Stanford', undefined, {})
     expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({ query: 'Stanford' }))
   })
 
   it('caches search results', async () => {
+    mockStructures.mockResolvedValue({ structures: [] })
     mockSearch.mockResolvedValueOnce({ results: [] })
     const { runSearch } = await import('../../../src/commands/search.ts')
     await runSearch('test', undefined, {})
@@ -81,7 +83,7 @@ describe('search command', () => {
 
   it('resolves structure id when --type is provided', async () => {
     mockStructures.mockResolvedValue({
-      structures: [{ id: 'st-1', objectTypeId: 'st-1', title: 'Page' }],
+      structures: [{ id: 'st-1', title: 'Page' }],
     })
     mockSearch.mockResolvedValue({ results: [] })
     const { runSearch } = await import('../../../src/commands/search.ts')
@@ -96,8 +98,26 @@ describe('search command', () => {
     await expect(runSearch('hello', 'Unknown', {})).rejects.toThrow('Unknown type')
   })
 
+  it('formats built-in structureId as readable type name', async () => {
+    mockStructures.mockResolvedValue({ structures: [] })
+    mockSearch.mockResolvedValue({ results: [{ id: 'x', structureId: 'RootPage', title: 'My Page' }] })
+    const { runSearch } = await import('../../../src/commands/search.ts')
+    await runSearch('q', undefined, {})
+    const written = outSpy.mock.calls.map(c => c[0]).join('')
+    expect(written).toContain('Page')
+  })
+
+  it('resolves custom structureId to title via structures lookup', async () => {
+    mockStructures.mockResolvedValue({ structures: [{ id: 'custom-uuid-123', title: 'Book' }] })
+    mockSearch.mockResolvedValue({ results: [{ id: 'x', structureId: 'custom-uuid-123', title: 'Dune' }] })
+    const { runSearch } = await import('../../../src/commands/search.ts')
+    await runSearch('q', undefined, {})
+    const written = outSpy.mock.calls.map(c => c[0]).join('')
+    expect(written).toContain('Book')
+  })
+
   it('prints json when json option is set', async () => {
-    const data = { results: [{ id: 'x', title: 'T', objectTypeId: 'o' }] }
+    const data = { results: [{ id: 'x', structureId: 'RootPage', title: 'T' }] }
     mockSearch.mockResolvedValue(data)
     const { runSearch } = await import('../../../src/commands/search.ts')
     await runSearch('q', undefined, { json: true })

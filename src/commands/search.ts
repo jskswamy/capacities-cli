@@ -29,20 +29,32 @@ import { fetchWithCache, queryHash, TTL } from '../cache.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printTable, printJson, type CommandOptions } from '../output.ts'
 
-type StructureItem = { id: string; title: string; objectTypeId?: string; objectType?: string }
+type StructureItem = { id: string; title: string }
 type StructuresResp = { structures: StructureItem[] }
-type SearchItem = { id?: string; title?: string; objectTypeId?: string; objectType?: string; objectTypeTitle?: string; snippet?: string }
+type SearchItem = { id: string; structureId?: string; title?: string }
 type SearchResp = { results?: SearchItem[] }
 
-async function resolveStructureId(space: ResolvedSpace, typeName: string): Promise<string | undefined> {
-  if (!typeName) return undefined
-  const resp = await fetchWithCache<StructuresResp>(space.name, 'structures.json', TTL.STRUCTURES, () => {
+async function fetchStructures(space: ResolvedSpace): Promise<StructuresResp> {
+  return fetchWithCache<StructuresResp>(space.name, 'structures.json', TTL.STRUCTURES, () => {
     const client = createClient(space)
     return client.space.structures() as Promise<StructuresResp>
   })
-  const found = resp.structures.find(s => s.title === typeName || s.objectType === typeName)
+}
+
+async function resolveStructureId(space: ResolvedSpace, typeName: string): Promise<string | undefined> {
+  const resp = await fetchStructures(space)
+  const found = resp.structures.find(s => s.title === typeName)
   if (!found) throw new CapacitiesError(ExitCode.NOT_FOUND, `Unknown type "${typeName}". Check: capacities search --type help`)
-  return found.objectTypeId ?? found.id
+  return found.id
+}
+
+function formatType(structureId: string, lookup: Map<string, string>): string {
+  if (lookup.has(structureId)) return lookup.get(structureId)!
+  // Built-in types: strip Root/Media/Util prefix
+  for (const prefix of ['Root', 'Media', 'Util', 'User']) {
+    if (structureId.startsWith(prefix)) return structureId.slice(prefix.length)
+  }
+  return structureId
 }
 
 export async function runSearch(query: string, typeName: string | undefined, opts: CommandOptions): Promise<void> {
@@ -51,16 +63,19 @@ export async function runSearch(query: string, typeName: string | undefined, opt
   const cacheKey = `search/${queryHash(query, typeName)}.json`
   const data = await fetchWithCache<SearchResp>(space.name, cacheKey, TTL.SEARCH, () => {
     const client = createClient(space)
-    return client.objects.search({ query, ...(structureId ? { structureId } : {}) }) as Promise<SearchResp>
+    return client.objects.search({ query, ...(structureId ? { structureIds: [structureId] } : {}) }) as Promise<SearchResp>
   })
 
   if (opts.json) { printJson(data, opts); return }
 
+  // Build a structureId → title lookup from cached structures (no extra API call if already cached)
+  const structures = await fetchStructures(space)
+  const lookup = new Map(structures.structures.map(s => [s.id, s.title]))
+
   const rows = (data.results ?? []).map(r => ({
     id: r.id ?? '',
-    type: r.objectTypeTitle ?? r.objectType ?? '',
+    type: r.structureId ? formatType(r.structureId, lookup) : '',
     title: r.title ?? '',
-    snippet: (r.snippet ?? '').slice(0, 60),
   }))
   printTable(rows, opts)
 }

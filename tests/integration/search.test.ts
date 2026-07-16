@@ -29,9 +29,11 @@ import * as path from 'path'
 
 const SEARCH_FIXTURE = {
   results: [
-    { id: 'abc-123', title: 'Stanford University', objectTypeTitle: 'Organization', snippet: 'Palo Alto research university' },
+    { id: 'abc-123', structureId: 'RootPage', title: 'Stanford University' },
   ],
 }
+
+const STRUCTURES_FIXTURE = { structures: [] }
 
 let tmpDir: string
 
@@ -49,6 +51,7 @@ describe('capacities search', () => {
   it('calls POST /objects/search with spec-compliant body and renders table', async () => {
     let capturedBody: unknown
     server.use(
+      http.get('https://api.capacities.io/space/structures', () => HttpResponse.json(STRUCTURES_FIXTURE)),
       http.post('https://api.capacities.io/objects/search', async ({ request }) => {
         capturedBody = await request.json()
         return HttpResponse.json(SEARCH_FIXTURE)
