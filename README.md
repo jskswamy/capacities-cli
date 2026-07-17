@@ -75,6 +75,9 @@ capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>] 
 capacities update <objectId> <propertyKey> <value>
 capacities daily-note <markdown|-> [--date <YYYY-MM-DD>] [--no-timestamp]
 capacities validate --type <type> [--json]        # reads stdin, writes corrected markdown
+capacities types                              # table: name | structureId
+capacities types <name>                       # field table for named type
+capacities types --name <name>               # bare structureId (shell-friendly)
 ```
 
 The `-f / --field` flag on `create` injects a custom property line into the
@@ -85,6 +88,12 @@ reads a full frontmatter+body blob from a file or stdin (`-`); when set,
 `daily-note` appends content to the daily note. Pass `"-"` to read from
 stdin, making it composable with any pipeline. `--date` backfills a past
 date; `--no-timestamp` suppresses the automatic header Capacities adds.
+
+`types` lists all object types defined in your space, with their Capacities
+structureIds. Pass a type name as a positional argument to see the field
+definitions for that type — field names, types, and allowed values for
+label fields. The `--name` flag prints just the bare structureId, suitable
+for shell substitution into other commands.
 
 `validate` reads frontmatter+body from stdin, checks it against the live
 type definition, and writes corrected markdown to stdout. Warnings (field

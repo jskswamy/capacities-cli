@@ -34,7 +34,7 @@ type StructuresResp = { structures: StructureItem[] }
 type SearchItem = { id: string; structureId?: string; title?: string }
 type SearchResp = { results?: SearchItem[] }
 
-async function fetchStructures(space: ResolvedSpace): Promise<StructuresResp> {
+export async function fetchStructures(space: ResolvedSpace): Promise<StructuresResp> {
   return fetchWithCache<StructuresResp>(space.name, 'structures.json', TTL.STRUCTURES, () => {
     const client = createClient(space)
     return client.space.structures() as Promise<StructuresResp>
