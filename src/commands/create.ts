@@ -21,53 +21,64 @@
  */
 
 // src/commands/create.ts
+import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
 import { createClient } from '../client.ts'
 import { cacheSet } from '../cache.ts'
 import { fetchAndPersist } from '../objects.ts'
-import { handleApiError, formatError } from '../errors.ts'
-import { printLine, type CommandOptions } from '../output.ts'
+import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
+import { printLine, readStdin, type CommandOptions } from '../output.ts'
 import { logger } from '../logger.ts'
 
-// Structure IDs (or title patterns) for types where createViaMD leaves the title blank.
-// These types need a bare-YAML PATCH to set the title after creation.
 const EMPTY_TITLE_KEY_TYPES = new Set(['Organization', 'Blip'])
 
 export async function runCreate(
   objectType: string,
-  title: string,
-  opts: CommandOptions & { desc?: string; tags?: string }
+  title: string | undefined,
+  opts: CommandOptions & { desc?: string; tags?: string; field?: string[]; markdown?: string }
 ): Promise<void> {
+  if (!title && !opts.markdown) {
+    throw new CapacitiesError(ExitCode.CONFIG, '--title is required when --markdown is not set')
+  }
+
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
 
-  // Build markdown body — title goes in content for types that support it
-  const frontmatterLines: string[] = []
-  if (opts.desc) frontmatterLines.push(`description: ${JSON.stringify(opts.desc)}`)
-  if (opts.tags) frontmatterLines.push(`tags: [${opts.tags.split(',').map(t => JSON.stringify(t.trim())).join(', ')}]`)
+  let markdown: string
 
-  const frontmatter = frontmatterLines.length > 0
-    ? `---\n${frontmatterLines.join('\n')}\n---\n`
-    : `---\ntitle: ${title}\n---\n`
+  if (opts.markdown) {
+    // Caller owns the markdown — skip frontmatter assembly and title fix
+    markdown = opts.markdown === '-' ? await readStdin() : fs.readFileSync(opts.markdown, 'utf8')
+  } else {
+    const frontmatterLines: string[] = []
+    if (opts.desc) frontmatterLines.push(`description: ${JSON.stringify(opts.desc)}`)
+    if (opts.tags) frontmatterLines.push(`tags: [${opts.tags.split(',').map(t => JSON.stringify(t.trim())).join(', ')}]`)
+    for (const f of opts.field ?? []) {
+      const eq = f.indexOf('=')
+      if (eq < 1) continue
+      frontmatterLines.push(`${f.slice(0, eq)}: ${f.slice(eq + 1)}`)
+    }
+    markdown = frontmatterLines.length > 0
+      ? `---\n${frontmatterLines.join('\n')}\n---\n`
+      : `---\ntitle: ${title}\n---\n`
+  }
 
   // ponytail: cast as any — SDK uses { structureId, markdown } but callers may pass
   // objectType by name; unit tests mock the SDK so validation is bypassed there.
-  // Integration tests should pass a valid structureId (UUID or built-in).
   const result = await (client.object.markdown as any).create({
     structureId: objectType,
-    markdown: frontmatter,
+    markdown,
   })
 
   const objectId = result.id as string
 
-  // Fix title for types where createViaMD doesn't set it (Organization, Blip)
-  if (EMPTY_TITLE_KEY_TYPES.has(objectType)) {
+  // Fix title for types where createViaMD doesn't set it — only when we own the frontmatter
+  if (!opts.markdown && EMPTY_TITLE_KEY_TYPES.has(objectType)) {
     logger.debug(`applying bare-YAML title fix for ${objectType}`)
     await (client.object.markdown as any).update({ id: objectId, markdown: `title: ${title}` })
   }
 
-  // Write-through: fetch markdown, persist to objectsDir, and cache
   try {
     const content = await fetchAndPersist(client, space.objectsDir ?? '', objectId)
     cacheSet(space.name, `object/${objectId}.json`, content)
@@ -83,10 +94,12 @@ export function registerCreate(program: Command): void {
     .command('create')
     .description('Create a new object')
     .requiredOption('-t, --type <type>', 'object type or structureId (Organization, Personality, Blip, RootPage, or UUID)')
-    .requiredOption('--title <title>', 'object title')
+    .option('--title <title>', 'object title')
     .option('-d, --desc <description>', 'description')
     .option('--tags <tags>', 'comma-separated tags')
-    .action(async (cmdOpts: { type: string; title: string; desc?: string; tags?: string }) => {
+    .option('-f, --field <key=value>', 'custom field, repeatable (e.g. -f ring=Trial)', (v, acc: string[]) => [...acc, v], [])
+    .option('--markdown <path>', 'read full frontmatter+body from file path, or "-" for stdin')
+    .action(async (cmdOpts: { type: string; title?: string; desc?: string; tags?: string; field: string[]; markdown?: string }) => {
       const globalOpts = program.opts()
       await runCreate(cmdOpts.type, cmdOpts.title, { ...globalOpts, ...cmdOpts }).catch(handleApiError)
     })

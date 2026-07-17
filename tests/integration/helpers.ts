@@ -29,6 +29,8 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { ExitError, CapacitiesError, toExitCode, formatError } from '../../src/errors.ts'
 import { CommanderError } from 'commander'
+import { Readable } from 'stream'
+import { vi } from 'vitest'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const spec = JSON.parse(readFileSync(join(__dirname, '../fixtures/openapi.json'), 'utf8'))
@@ -73,6 +75,12 @@ export async function runCLI(args: string[], env: Record<string, string> = {}): 
   }
 
   return { exitCode, stdout: stdoutChunks.join(''), stderr: stderrChunks.join('') }
+}
+
+export function withStdin(content: string): void {
+  vi.spyOn(process, 'stdin', 'get').mockReturnValue(
+    Readable.from([Buffer.from(content)]) as any
+  )
 }
 
 export { http, HttpResponse }

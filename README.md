@@ -70,9 +70,15 @@ capacities auth keygen           # generate age keypair → ~/.age/key.txt
 capacities search <query> [--type <type>]         # search objects (cached 10 min)
 capacities get <objectId>                         # get object as markdown (cached 1h)
 capacities link <objectId> <propertyKey> <targetId...>  # set entity field (one call, N targets)
-capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>]
+capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>] \
+                  [-f key=value ...] [--markdown <path|->]
 capacities update <objectId> <propertyKey> <value>
 ```
+
+The `-f / --field` flag on `create` injects a custom property line into the
+frontmatter (repeatable: `-f ring=Trial -f quadrant=Tool`). `--markdown`
+reads a full frontmatter+body blob from a file or stdin (`-`); when set,
+`--title` is optional and `--field` is ignored.
 
 ### Global flags
 

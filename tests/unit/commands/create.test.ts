@@ -90,4 +90,61 @@ describe('create command', () => {
     await runCreate('Page', 'T', {})
     expect(outSpy).toHaveBeenCalledWith(expect.stringContaining('id-xyz'))
   })
+
+  it('injects --field values as frontmatter lines', async () => {
+    mockCreate.mockResolvedValue({ id: 'field-obj' })
+    mockMarkdownGet.mockResolvedValue('---\ntype: Page\ntitle: T\n---\n')
+    const { runCreate } = await import('../../../src/commands/create.ts')
+    await runCreate('Page', 'T', { field: ['ring=Trial', 'quadrant=Tool'] })
+    const markdown: string = mockCreate.mock.calls[0][0].markdown
+    expect(markdown).toContain('ring: Trial')
+    expect(markdown).toContain('quadrant: Tool')
+  })
+
+  it('sends --markdown file content verbatim without EMPTY_TITLE fix', async () => {
+    mockCreate.mockResolvedValue({ id: 'md-obj' })
+    mockMarkdownGet.mockResolvedValue('---\ntitle: From File\n---\n')
+    const tmpFile = path.join(tmpDir, 'input.md')
+    fs.writeFileSync(tmpFile, '---\ntitle: From File\n---\nBody here')
+    const { runCreate } = await import('../../../src/commands/create.ts')
+    await runCreate('Page', undefined, { markdown: tmpFile })
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      markdown: '---\ntitle: From File\n---\nBody here',
+    }))
+    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+  })
+
+  it('--markdown - reads from stdin', async () => {
+    mockCreate.mockResolvedValue({ id: 'stdin-obj' })
+    mockMarkdownGet.mockResolvedValue('---\ntitle: From Stdin\n---\n')
+    const { Readable } = await import('stream')
+    const stdinContent = '---\ntitle: From Stdin\n---\nStdin body'
+    vi.spyOn(process, 'stdin', 'get').mockReturnValue(
+      Readable.from([Buffer.from(stdinContent)]) as any
+    )
+    const { runCreate } = await import('../../../src/commands/create.ts')
+    await runCreate('Page', undefined, { markdown: '-' })
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      markdown: stdinContent,
+    }))
+  })
+
+  it('throws CONFIG error when neither --title nor --markdown is set', async () => {
+    const { runCreate } = await import('../../../src/commands/create.ts')
+    const { CapacitiesError, ExitCode } = await import('../../../src/errors.ts')
+    await expect(runCreate('Page', undefined, {})).rejects.toMatchObject({
+      code: ExitCode.CONFIG,
+    })
+  })
+
+  it('--field is ignored when --markdown is set', async () => {
+    mockCreate.mockResolvedValue({ id: 'md-field-obj' })
+    mockMarkdownGet.mockResolvedValue('---\ntitle: T\n---\n')
+    const tmpFile = path.join(tmpDir, 'md.md')
+    fs.writeFileSync(tmpFile, '---\ntitle: T\n---\n')
+    const { runCreate } = await import('../../../src/commands/create.ts')
+    await runCreate('Page', undefined, { markdown: tmpFile, field: ['ring=Trial'] })
+    const markdown: string = mockCreate.mock.calls[0][0].markdown
+    expect(markdown).not.toContain('ring:')
+  })
 })

@@ -22,6 +22,7 @@
 
 // tests/integration/create.test.ts
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import * as fs from 'fs'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const OBJECT_FIXTURE = { id: 'new-org-id', structureId: '4ba6e5c6-3f31-45f2-93a0-27a8b2d91551', markdown: '---\ntype: Organization\ntitle: Bell Labs\n---\n\n# Bell Labs\n' }
@@ -71,5 +72,34 @@ describe('capacities create', () => {
     })
     expect(exitCode).toBe(5)
     expect(stderr).toContain('Rate limit')
+  })
+
+  it('--markdown <file> sends file content to API', async () => {
+    const tmpFile = '/tmp/cap-create-md-test.md'
+    const mdContent = '---\ntitle: From File\n---\nContent here'
+    fs.writeFileSync(tmpFile, mdContent)
+    server.use(
+      http.post('https://api.capacities.io/object/markdown', async () => {
+        return HttpResponse.json({ id: 'file-md-id', structureId: 'RootPage', markdown: mdContent })
+      }),
+      http.get('https://api.capacities.io/object/markdown', () =>
+        HttpResponse.text(mdContent)
+      )
+    )
+    const { exitCode, stdout } = await runCLI(
+      ['create', '--type', 'RootPage', '--markdown', tmpFile],
+      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-create-test.toml', CAPACITIES_SPACE: 'personal' }
+    )
+    fs.unlinkSync(tmpFile)
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('file-md-id')
+  })
+
+  it('exits 2 when neither --title nor --markdown is provided', async () => {
+    const { exitCode } = await runCLI(
+      ['create', '--type', 'RootPage'],
+      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-create-test.toml', CAPACITIES_SPACE: 'personal' }
+    )
+    expect(exitCode).toBe(2)
   })
 })
