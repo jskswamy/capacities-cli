@@ -60,12 +60,14 @@ const getENV = () => ({
 
 beforeAll(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-types-integ-'))
+  process.env.CAPACITIES_CACHE_DIR = tmpDir
   server.listen({ onUnhandledRequest: 'bypass' })
 })
 beforeEach(() => cacheBust('personal', 'structures.json'))
 afterEach(() => server.resetHandlers())
 afterAll(() => {
   server.close()
+  delete process.env.CAPACITIES_CACHE_DIR
   fs.rmSync(tmpDir, { recursive: true })
 })
 

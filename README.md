@@ -78,6 +78,8 @@ capacities validate --type <type> [--json]        # reads stdin, writes correcte
 capacities types                              # table: name | structureId
 capacities types <name>                       # field table for named type
 capacities types --name <name>               # bare structureId (shell-friendly)
+capacities open <objectId>                   # open in web app (prints URL if headless/CI)
+capacities open <objectId> --print           # always print URL, never open browser
 ```
 
 The `-f / --field` flag on `create` injects a custom property line into the
@@ -88,6 +90,11 @@ reads a full frontmatter+body blob from a file or stdin (`-`); when set,
 `daily-note` appends content to the daily note. Pass `"-"` to read from
 stdin, making it composable with any pipeline. `--date` backfills a past
 date; `--no-timestamp` suppresses the automatic header Capacities adds.
+
+`open` opens an object in the Capacities web app. In headless environments
+(CI, piped output) it prints the URL instead of launching a browser. Pass
+`--print` to always print the URL regardless of environment — useful for
+copying or composing with other commands.
 
 `types` lists all object types defined in your space, with their Capacities
 structureIds. Pass a type name as a positional argument to see the field
