@@ -73,12 +73,17 @@ capacities link <objectId> <propertyKey> <targetId...>  # set entity field (one 
 capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>] \
                   [-f key=value ...] [--markdown <path|->]
 capacities update <objectId> <propertyKey> <value>
+capacities daily-note <markdown|-> [--date <YYYY-MM-DD>] [--no-timestamp]
 ```
 
 The `-f / --field` flag on `create` injects a custom property line into the
 frontmatter (repeatable: `-f ring=Trial -f quadrant=Tool`). `--markdown`
 reads a full frontmatter+body blob from a file or stdin (`-`); when set,
 `--title` is optional and `--field` is ignored.
+
+`daily-note` appends content to the daily note. Pass `"-"` to read from
+stdin, making it composable with any pipeline. `--date` backfills a past
+date; `--no-timestamp` suppresses the automatic header Capacities adds.
 
 ### Global flags
 
