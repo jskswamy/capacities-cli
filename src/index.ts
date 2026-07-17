@@ -32,6 +32,7 @@ import { registerLink } from './commands/link.ts'
 import { registerCreate } from './commands/create.ts'
 import { registerUpdate } from './commands/update.ts'
 import { registerDailyNote } from './commands/daily-note.ts'
+import { registerValidate } from './commands/validate.ts'
 
 export function createCLI(): Command {
   const program = new Command('capacities')
@@ -56,6 +57,7 @@ export function createCLI(): Command {
   registerCreate(program)
   registerUpdate(program)
   registerDailyNote(program)
+  registerValidate(program)
 
   return program
 }

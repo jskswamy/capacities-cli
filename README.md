@@ -74,6 +74,7 @@ capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>] 
                   [-f key=value ...] [--markdown <path|->]
 capacities update <objectId> <propertyKey> <value>
 capacities daily-note <markdown|-> [--date <YYYY-MM-DD>] [--no-timestamp]
+capacities validate --type <type> [--json]        # reads stdin, writes corrected markdown
 ```
 
 The `-f / --field` flag on `create` injects a custom property line into the
@@ -84,6 +85,17 @@ reads a full frontmatter+body blob from a file or stdin (`-`); when set,
 `daily-note` appends content to the daily note. Pass `"-"` to read from
 stdin, making it composable with any pipeline. `--date` backfills a past
 date; `--no-timestamp` suppresses the automatic header Capacities adds.
+
+`validate` reads frontmatter+body from stdin, checks it against the live
+type definition, and writes corrected markdown to stdout. Warnings (field
+casing, label normalisation, auto-filled fields) go to stderr. Exit 0 means
+valid; exit 1 means a required field is missing. Pipe directly into
+`create --markdown -` for a validate-then-create workflow:
+
+```bash
+echo "$frontmatter" | capacities validate --type Blip \
+  | capacities create --type Blip --markdown - --quiet
+```
 
 ### Global flags
 

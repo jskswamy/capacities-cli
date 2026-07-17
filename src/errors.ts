@@ -59,8 +59,8 @@ export function formatError(err: unknown): string {
 }
 
 export function handleApiError(err: unknown): never {
-  // CapacitiesError already has the right exit code — re-throw directly
-  if (err instanceof CapacitiesError) throw err
+  // CapacitiesError / ExitError already carry the intended exit code — pass through
+  if (err instanceof CapacitiesError || err instanceof ExitError) throw err
   if (!(err instanceof Error)) throw new CapacitiesError(ExitCode.UNEXPECTED, String(err))
   // ponytail: check SDK's numeric .status field as well as message string for older/alternate error shapes
   const status = (err as { status?: number }).status
