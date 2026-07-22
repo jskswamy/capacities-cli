@@ -23,18 +23,41 @@
 // tests/integration/link.test.ts
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
 
 const OBJECT_FIXTURE = { id: 'org-1', title: 'Stanford', objectType: 'Organization' }
 const MARKDOWN_FIXTURE = { id: 'org-1', structureId: 'RootEntity', markdown: '---\ntype: Organization\ntitle: Stanford\n---\n' }
+const STRUCTURES_FIXTURE = {
+  structures: [{
+    id: 'org-struct',
+    title: 'Organization',
+    propertyDefinitions: [
+      { id: 'f46c81ae-0001-0000-0000-000000000001', name: 'Personalities', type: 'entity' },
+    ],
+  }],
+}
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
+let tmpDir: string
+
+beforeAll(() => {
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-link-integ-'))
+  server.listen({ onUnhandledRequest: 'bypass' })
+})
 afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
+afterAll(() => {
+  server.close()
+  fs.rmSync(tmpDir, { recursive: true })
+})
 
 describe('capacities link', () => {
-  it('PATCH /object sends valid entity body', async () => {
+  it('PATCH /object sends entity payload with resolved UUID key', async () => {
     let capturedBody: unknown
     server.use(
+      http.get('https://api.capacities.io/space/structures', () =>
+        HttpResponse.json(STRUCTURES_FIXTURE)
+      ),
       http.patch('https://api.capacities.io/object', async ({ request }) => {
         capturedBody = await request.json()
         return HttpResponse.json(OBJECT_FIXTURE)
@@ -48,13 +71,14 @@ describe('capacities link', () => {
       CAPACITIES_TOKEN: 'cap-api-test',
       CAPACITIES_CONFIG: '/tmp/cap-link-test.toml',
       CAPACITIES_SPACE: 'personal',
+      CAPACITIES_CACHE_DIR: tmpDir,
     })
     expect(exitCode).toBe(0)
     expect(stdout).toContain('Linked 2 target(s)')
     expect(capturedBody).toMatchObject({
       id: 'org-1',
       properties: {
-        personalities: {
+        'f46c81ae-0001-0000-0000-000000000001': {
           type: 'entity',
           entity: [{ id: 'p1' }, { id: 'p2' }],
         },
@@ -64,6 +88,9 @@ describe('capacities link', () => {
 
   it('exits 5 on 429', async () => {
     server.use(
+      http.get('https://api.capacities.io/space/structures', () =>
+        HttpResponse.json(STRUCTURES_FIXTURE)
+      ),
       http.patch('https://api.capacities.io/object', () =>
         new HttpResponse(null, { status: 429, headers: { 'Retry-After': '60' } })
       )
@@ -72,6 +99,7 @@ describe('capacities link', () => {
       CAPACITIES_TOKEN: 'cap-api-test',
       CAPACITIES_CONFIG: '/tmp/cap-link-test.toml',
       CAPACITIES_SPACE: 'personal',
+      CAPACITIES_CACHE_DIR: tmpDir,
     })
     expect(exitCode).toBe(5)
     expect(stderr).toContain('Rate limit')

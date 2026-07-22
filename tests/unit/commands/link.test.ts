@@ -28,19 +28,32 @@ import * as path from 'path'
 
 const mockUpdate = vi.fn()
 const mockMarkdownGet = vi.fn()
+const mockFetchStructures = vi.fn()
 
-vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    object: {
-      update: mockUpdate,
-      markdown: { get: mockMarkdownGet },
-    },
+vi.mock('../../../src/client.ts', () => ({
+  createClient: vi.fn().mockImplementation(() => ({
+    object: { update: mockUpdate, markdown: { get: mockMarkdownGet } },
   })),
 }))
 
+vi.mock('../../../src/commands/search.ts', async (importOriginal) => {
+  const actual = await importOriginal() as object
+  return { ...actual, fetchStructures: mockFetchStructures }
+})
+
+const STRUCTURES = {
+  structures: [{
+    id: 'org-struct',
+    title: 'Organization',
+    propertyDefinitions: [
+      { id: 'f46c81ae-0001-0000-0000-000000000001', name: 'Personalities', type: 'entity' },
+      { id: 'quadrant-uuid', name: 'Quadrant', type: 'label', labelSet: [{ id: 'tool-id', name: 'Tool' }] },
+    ],
+  }],
+}
+
 describe('link command', () => {
   let tmpDir: string
-  let outSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-link-'))
@@ -49,10 +62,14 @@ describe('link command', () => {
     process.env.CAPACITIES_TOKEN = 'cap-api-test'
     process.env.CAPACITIES_SPACE = 'personal'
     process.env.CAPACITIES_OBJECTS_DIR = path.join(tmpDir, 'objects')
-    outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+    vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
     fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "' + path.join(tmpDir, 'objects') + '"\n')
+    fs.writeFileSync(
+      path.join(tmpDir, 'capacities', 'config.toml'),
+      `active_space = "personal"\n[spaces.personal]\nobjects_dir = "${path.join(tmpDir, 'objects')}"\n`
+    )
+    mockFetchStructures.mockResolvedValue(STRUCTURES)
   })
 
   afterEach(() => {
@@ -65,24 +82,29 @@ describe('link command', () => {
     vi.clearAllMocks()
   })
 
-  it('sends entity array with all target IDs', async () => {
-    mockUpdate.mockResolvedValue({ id: 'org-1', title: 'Stanford', objectType: 'Organization' })
+  it('resolves property name to UUID and sends entity payload', async () => {
+    mockUpdate.mockResolvedValue({})
     mockMarkdownGet.mockResolvedValue('---\ntype: Organization\ntitle: Stanford\n---\n')
     const { runLink } = await import('../../../src/commands/link.ts')
-    await runLink('org-1', 'personalities', ['p1', 'p2', 'p3'], {})
+    await runLink('org-1', 'personalities', ['p1', 'p2'], {})
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
       id: 'org-1',
       properties: {
-        personalities: {
+        'f46c81ae-0001-0000-0000-000000000001': {
           type: 'entity',
-          entity: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }],
+          entity: [{ id: 'p1' }, { id: 'p2' }],
         },
       },
     }))
   })
 
+  it('throws CONFIG error when property is not an entity type', async () => {
+    const { runLink } = await import('../../../src/commands/link.ts')
+    await expect(runLink('org-1', 'quadrant', ['val'], {})).rejects.toThrow('use `cap update`')
+  })
+
   it('busts object cache on success', async () => {
-    mockUpdate.mockResolvedValue({ id: 'org-1', title: 'Stanford', objectType: 'Organization' })
+    mockUpdate.mockResolvedValue({})
     mockMarkdownGet.mockResolvedValue('---\ntype: Organization\ntitle: Stanford\n---\n')
     const { cacheSet } = await import('../../../src/cache.ts')
     cacheSet('personal', 'object/org-1.json', { id: 'org-1' })

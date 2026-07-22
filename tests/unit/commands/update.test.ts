@@ -29,16 +29,33 @@ import * as path from 'path'
 const mockUpdate = vi.fn()
 const mockMarkdownGet = vi.fn()
 const mockPatchMarkdown = vi.fn()
+const mockFetchStructures = vi.fn()
 
 vi.mock('../../../src/client.ts', () => ({
   createClient: vi.fn().mockImplementation(() => ({
-    object: {
-      update: mockUpdate,
-      markdown: { get: mockMarkdownGet },
-    },
+    object: { update: mockUpdate, markdown: { get: mockMarkdownGet } },
   })),
   patchMarkdown: mockPatchMarkdown,
 }))
+
+vi.mock('../../../src/commands/search.ts', async (importOriginal) => {
+  const actual = await importOriginal() as object
+  return { ...actual, fetchStructures: mockFetchStructures }
+})
+
+const STRUCTURES = {
+  structures: [{
+    id: 'blip-struct',
+    title: 'Blip',
+    propertyDefinitions: [
+      { id: 'description', name: 'description', type: 'text' },
+      { id: 'q-uuid-001', name: 'Quadrant', type: 'label', labelSet: [
+        { id: 'tool-id', name: 'Tool' },
+      ]},
+      { id: 'p-uuid-002', name: 'Personalities', type: 'entity' },
+    ],
+  }],
+}
 
 describe('update command', () => {
   let tmpDir: string
@@ -52,7 +69,11 @@ describe('update command', () => {
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
     fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "' + path.join(tmpDir, 'objects') + '"\n')
+    fs.writeFileSync(
+      path.join(tmpDir, 'capacities', 'config.toml'),
+      `active_space = "personal"\n[spaces.personal]\nobjects_dir = "${path.join(tmpDir, 'objects')}"\n`
+    )
+    mockFetchStructures.mockResolvedValue(STRUCTURES)
   })
 
   afterEach(() => {
@@ -64,7 +85,7 @@ describe('update command', () => {
     vi.clearAllMocks()
   })
 
-  it('sends scalar property patch', async () => {
+  it('resolves built-in property id and sends text payload', async () => {
     mockUpdate.mockResolvedValue({})
     mockMarkdownGet.mockResolvedValue('---\ntype: Personality\ntitle: Updated\n---\n')
     const { runUpdate } = await import('../../../src/commands/update.ts')
@@ -75,7 +96,23 @@ describe('update command', () => {
     }))
   })
 
-  it('calls patchMarkdown when --markdown flag is set with a file', async () => {
+  it('resolves label property name to UUID and sends label payload', async () => {
+    mockUpdate.mockResolvedValue({})
+    mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await runUpdate('obj-1', 'quadrant', 'Tool', {})
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'obj-1',
+      properties: { 'q-uuid-001': { type: 'label', label: [{ id: 'tool-id', name: 'Tool' }] } },
+    }))
+  })
+
+  it('throws CONFIG error when property is an entity type', async () => {
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await expect(runUpdate('obj-1', 'personalities', 'p1', {})).rejects.toThrow('use `cap link`')
+  })
+
+  it('calls patchMarkdown when --markdown flag is set', async () => {
     mockPatchMarkdown.mockResolvedValue(undefined)
     mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
     const mdPath = path.join(tmpDir, 'grafana.md')
@@ -92,7 +129,9 @@ describe('update command', () => {
 
   it('throws CONFIG error when neither --markdown nor propertyKey provided', async () => {
     const { runUpdate } = await import('../../../src/commands/update.ts')
-    await expect(runUpdate('obj-3', undefined, undefined, {})).rejects.toThrow('Either --markdown or <propertyKey> <value> is required')
+    await expect(runUpdate('obj-3', undefined, undefined, {})).rejects.toThrow(
+      'Either --markdown or <propertyKey> <value> is required'
+    )
   })
 
   it('busts cache after update', async () => {

@@ -23,18 +23,43 @@
 // tests/integration/update.test.ts
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const MARKDOWN_FIXTURE = { id: 'obj-1', structureId: 'RootEntity', markdown: '---\ntype: Personality\ntitle: Updated Name\n---\n\n# Updated Name\n' }
+const STRUCTURES_FIXTURE = {
+  structures: [{
+    id: 'blip-struct',
+    title: 'Blip',
+    propertyDefinitions: [
+      { id: 'description', name: 'description', type: 'text' },
+      { id: 'q-uuid-001', name: 'Quadrant', type: 'label', labelSet: [
+        { id: 'tool-id', name: 'Tool' },
+      ]},
+    ],
+  }],
+}
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
+let tmpDir: string
+
+beforeAll(() => {
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-update-integ-'))
+  server.listen({ onUnhandledRequest: 'bypass' })
+})
 afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
+afterAll(() => {
+  server.close()
+  fs.rmSync(tmpDir, { recursive: true })
+})
 
 describe('capacities update', () => {
-  it('PATCH /object sends scalar property and prints confirmation', async () => {
+  it('PATCH /object sends built-in property with text payload', async () => {
     let capturedBody: unknown
     server.use(
+      http.get('https://api.capacities.io/space/structures', () =>
+        HttpResponse.json(STRUCTURES_FIXTURE)
+      ),
       http.patch('https://api.capacities.io/object', async ({ request }) => {
         capturedBody = await request.json()
         return HttpResponse.json({})
@@ -48,6 +73,7 @@ describe('capacities update', () => {
       CAPACITIES_TOKEN: 'cap-api-test',
       CAPACITIES_CONFIG: '/tmp/cap-update-test.toml',
       CAPACITIES_SPACE: 'personal',
+      CAPACITIES_CACHE_DIR: tmpDir,
     })
     expect(exitCode).toBe(0)
     expect(stdout).toContain('Updated description on obj-1')
@@ -57,7 +83,35 @@ describe('capacities update', () => {
     })
   })
 
-  it('PUT /object/markdown sends frontmatter and prints confirmation', async () => {
+  it('PATCH /object sends label property with UUID key', async () => {
+    let capturedBody: unknown
+    server.use(
+      http.get('https://api.capacities.io/space/structures', () =>
+        HttpResponse.json(STRUCTURES_FIXTURE)
+      ),
+      http.patch('https://api.capacities.io/object', async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({})
+      }),
+      http.get('https://api.capacities.io/object/markdown', () =>
+        HttpResponse.json(MARKDOWN_FIXTURE)
+      )
+    )
+
+    const { exitCode } = await runCLI(['update', 'obj-1', 'quadrant', 'Tool'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-update-test.toml',
+      CAPACITIES_SPACE: 'personal',
+      CAPACITIES_CACHE_DIR: tmpDir,
+    })
+    expect(exitCode).toBe(0)
+    expect(capturedBody).toMatchObject({
+      id: 'obj-1',
+      properties: { 'q-uuid-001': { type: 'label', label: [{ id: 'tool-id', name: 'Tool' }] } },
+    })
+  })
+
+  it('PATCH /object/markdown sends frontmatter', async () => {
     let capturedBody: unknown
     server.use(
       http.patch('https://api.capacities.io/object/markdown', async ({ request }) => {
@@ -72,7 +126,7 @@ describe('capacities update', () => {
     const mdContent = '---\nquadrant: Tool\nring: Adopt\n---\n'
     const tmpFile = '/tmp/cap-update-md-test.md'
     fs.writeFileSync(tmpFile, mdContent)
-    const { exitCode, stdout, stderr } = await runCLI(
+    const { exitCode, stdout } = await runCLI(
       ['update', 'obj-1', '--markdown', tmpFile],
       { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-update-test.toml', CAPACITIES_SPACE: 'personal' }
     )
@@ -84,6 +138,9 @@ describe('capacities update', () => {
 
   it('exits 5 on 429', async () => {
     server.use(
+      http.get('https://api.capacities.io/space/structures', () =>
+        HttpResponse.json(STRUCTURES_FIXTURE)
+      ),
       http.patch('https://api.capacities.io/object', () =>
         new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
       )
@@ -92,6 +149,7 @@ describe('capacities update', () => {
       CAPACITIES_TOKEN: 'cap-api-test',
       CAPACITIES_CONFIG: '/tmp/cap-update-test.toml',
       CAPACITIES_SPACE: 'personal',
+      CAPACITIES_CACHE_DIR: tmpDir,
     })
     expect(exitCode).toBe(5)
     expect(stderr).toContain('Rate limit')

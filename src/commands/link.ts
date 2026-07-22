@@ -26,7 +26,9 @@ import { resolveSpace } from './_space.ts'
 import { createClient } from '../client.ts'
 import { cacheBust } from '../cache.ts'
 import { fetchAndPersist } from '../objects.ts'
-import { handleApiError, formatError } from '../errors.ts'
+import { fetchStructures } from './search.ts'
+import { resolvePropertyDef, buildPropertyPayload } from '../properties.ts'
+import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printLine, type CommandOptions } from '../output.ts'
 import { logger } from '../logger.ts'
 
@@ -38,15 +40,16 @@ export async function runLink(
 ): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
+  const structures = await fetchStructures(space)
+  const def = resolvePropertyDef(structures, propertyKey)
+
+  if (def.type !== 'entity') {
+    throw new CapacitiesError(ExitCode.CONFIG, `"${propertyKey}" is a ${def.type} field — use \`cap update\` for scalar fields`)
+  }
 
   await client.object.update({
     id: objectId,
-    properties: {
-      [propertyKey]: {
-        type: 'entity',
-        entity: targetIds.map(id => ({ id })),
-      },
-    },
+    properties: { [def.id]: buildPropertyPayload(def, targetIds) },
   } as any)
 
   cacheBust(space.name, `object/${objectId}.json`)

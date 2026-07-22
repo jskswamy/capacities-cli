@@ -27,6 +27,8 @@ import { resolveSpace } from './_space.ts'
 import { createClient, patchMarkdown } from '../client.ts'
 import { cacheBust } from '../cache.ts'
 import { fetchAndPersist } from '../objects.ts'
+import { fetchStructures } from './search.ts'
+import { resolvePropertyDef, buildPropertyPayload } from '../properties.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printLine, readStdin, type CommandOptions } from '../output.ts'
 import { logger } from '../logger.ts'
@@ -47,11 +49,14 @@ export async function runUpdate(
     if (!propertyKey || value === undefined) {
       throw new CapacitiesError(ExitCode.CONFIG, 'Either --markdown or <propertyKey> <value> is required')
     }
+    const structures = await fetchStructures(space)
+    const def = resolvePropertyDef(structures, propertyKey)
+    if (def.type === 'entity') {
+      throw new CapacitiesError(ExitCode.CONFIG, `"${propertyKey}" is an entity field — use \`cap link\` <id> ${propertyKey} <target-ids>`)
+    }
     await client.object.update({
       id: objectId,
-      properties: {
-        [propertyKey]: { type: 'text', text: { value } },
-      },
+      properties: { [def.id]: buildPropertyPayload(def, [value]) },
     } as any)
   }
 
