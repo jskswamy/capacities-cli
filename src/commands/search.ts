@@ -28,8 +28,9 @@ import { createClient } from '../client.ts'
 import { fetchWithCache, queryHash, TTL } from '../cache.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printTable, printJson, type CommandOptions } from '../output.ts'
+import type { PropertyDef } from '../properties.ts'
 
-type StructureItem = { id: string; title: string }
+type StructureItem = { id: string; title: string; propertyDefinitions?: PropertyDef[] }
 type StructuresResp = { structures: StructureItem[] }
 type SearchItem = { id: string; structureId?: string; title?: string }
 type SearchResp = { results?: SearchItem[] }
