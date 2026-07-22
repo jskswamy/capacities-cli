@@ -28,14 +28,16 @@ import * as path from 'path'
 
 const mockUpdate = vi.fn()
 const mockMarkdownGet = vi.fn()
+const mockPatchMarkdown = vi.fn()
 
-vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
+vi.mock('../../../src/client.ts', () => ({
+  createClient: vi.fn().mockImplementation(() => ({
     object: {
       update: mockUpdate,
       markdown: { get: mockMarkdownGet },
     },
   })),
+  patchMarkdown: mockPatchMarkdown,
 }))
 
 describe('update command', () => {
@@ -71,6 +73,26 @@ describe('update command', () => {
       id: 'obj-1',
       properties: { description: { type: 'text', text: { value: 'New desc' } } },
     }))
+  })
+
+  it('calls patchMarkdown when --markdown flag is set with a file', async () => {
+    mockPatchMarkdown.mockResolvedValue(undefined)
+    mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
+    const mdPath = path.join(tmpDir, 'grafana.md')
+    fs.writeFileSync(mdPath, '---\nquadrant: Tool\nring: Adopt\n---\n')
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await runUpdate('obj-2', undefined, undefined, { markdown: mdPath })
+    expect(mockPatchMarkdown).toHaveBeenCalledWith(
+      expect.objectContaining({ authType: 'api_token' }),
+      'obj-2',
+      '---\nquadrant: Tool\nring: Adopt\n---\n'
+    )
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('throws CONFIG error when neither --markdown nor propertyKey provided', async () => {
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await expect(runUpdate('obj-3', undefined, undefined, {})).rejects.toThrow('Either --markdown or <propertyKey> <value> is required')
   })
 
   it('busts cache after update', async () => {

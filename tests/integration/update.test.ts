@@ -22,6 +22,7 @@
 
 // tests/integration/update.test.ts
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import * as fs from 'fs'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const MARKDOWN_FIXTURE = { id: 'obj-1', structureId: 'RootEntity', markdown: '---\ntype: Personality\ntitle: Updated Name\n---\n\n# Updated Name\n' }
@@ -54,6 +55,31 @@ describe('capacities update', () => {
       id: 'obj-1',
       properties: { description: { type: 'text', text: { value: 'New desc' } } },
     })
+  })
+
+  it('PUT /object/markdown sends frontmatter and prints confirmation', async () => {
+    let capturedBody: unknown
+    server.use(
+      http.patch('https://api.capacities.io/object/markdown', async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({})
+      }),
+      http.get('https://api.capacities.io/object/markdown', () =>
+        HttpResponse.json(MARKDOWN_FIXTURE)
+      )
+    )
+
+    const mdContent = '---\nquadrant: Tool\nring: Adopt\n---\n'
+    const tmpFile = '/tmp/cap-update-md-test.md'
+    fs.writeFileSync(tmpFile, mdContent)
+    const { exitCode, stdout, stderr } = await runCLI(
+      ['update', 'obj-1', '--markdown', tmpFile],
+      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-update-test.toml', CAPACITIES_SPACE: 'personal' }
+    )
+    fs.unlinkSync(tmpFile)
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('Updated markdown on obj-1')
+    expect(capturedBody).toMatchObject({ id: 'obj-1', markdown: mdContent })
   })
 
   it('exits 5 on 429', async () => {

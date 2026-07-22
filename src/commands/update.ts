@@ -21,30 +21,39 @@
  */
 
 // src/commands/update.ts
+import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient } from '../client.ts'
+import { createClient, patchMarkdown } from '../client.ts'
 import { cacheBust } from '../cache.ts'
 import { fetchAndPersist } from '../objects.ts'
-import { handleApiError, formatError } from '../errors.ts'
-import { printLine, type CommandOptions } from '../output.ts'
+import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
+import { printLine, readStdin, type CommandOptions } from '../output.ts'
 import { logger } from '../logger.ts'
 
 export async function runUpdate(
   objectId: string,
-  propertyKey: string,
-  value: string,
-  opts: CommandOptions
+  propertyKey: string | undefined,
+  value: string | undefined,
+  opts: CommandOptions & { markdown?: string }
 ): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
 
-  await client.object.update({
-    id: objectId,
-    properties: {
-      [propertyKey]: { type: 'text', text: { value } },
-    },
-  } as any)
+  if (opts.markdown) {
+    const markdown = opts.markdown === '-' ? await readStdin() : fs.readFileSync(opts.markdown, 'utf8')
+    await patchMarkdown(space, objectId, markdown)
+  } else {
+    if (!propertyKey || value === undefined) {
+      throw new CapacitiesError(ExitCode.CONFIG, 'Either --markdown or <propertyKey> <value> is required')
+    }
+    await client.object.update({
+      id: objectId,
+      properties: {
+        [propertyKey]: { type: 'text', text: { value } },
+      },
+    } as any)
+  }
 
   cacheBust(space.name, `object/${objectId}.json`)
 
@@ -56,14 +65,16 @@ export async function runUpdate(
     }
   }
 
-  printLine(`Updated ${propertyKey} on ${objectId}`, opts)
+  printLine(`Updated ${opts.markdown ? 'markdown' : propertyKey} on ${objectId}`, opts)
 }
 
 export function registerUpdate(program: Command): void {
   program
-    .command('update <objectId> <propertyKey> <value>')
-    .description('Update a scalar property on an object')
-    .action(async (objectId: string, propertyKey: string, value: string) => {
-      await runUpdate(objectId, propertyKey, value, program.opts()).catch(handleApiError)
+    .command('update <objectId> [propertyKey] [value]')
+    .description('Update a scalar property or full markdown on an object')
+    .option('--markdown <path>', 'read full frontmatter+body from file path, or "-" for stdin')
+    .action(async (objectId: string, propertyKey: string | undefined, value: string | undefined, cmdOpts: { markdown?: string }) => {
+      const opts = { ...program.opts(), ...cmdOpts }
+      await runUpdate(objectId, propertyKey, value, opts).catch(handleApiError)
     })
 }

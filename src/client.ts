@@ -27,6 +27,21 @@ import type { ResolvedSpace } from './config.ts'
 import { encryptSecrets } from './secrets.ts'
 import { getSpaceFile } from './config.ts'
 
+const API_BASE = 'https://api.capacities.io'
+
+// ponytail: raw fetch — SDK doesn't expose PATCH /object/markdown
+export async function patchMarkdown(space: ResolvedSpace, id: string, markdown: string): Promise<void> {
+  const token = space.authType === 'api_token' ? space.apiToken : space.accessToken
+  const res = await fetch(`${API_BASE}/object/markdown`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ id, markdown }),
+  })
+  if (!res.ok) {
+    throw Object.assign(new Error(String(res.status)), { status: res.status })
+  }
+}
+
 export function createClient(space: ResolvedSpace): CapacitiesClient {
   if (space.authType === 'api_token') {
     return new CapacitiesClient({ apiToken: space.apiToken! })
