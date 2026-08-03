@@ -35,6 +35,7 @@ import { registerDailyNote } from './commands/daily-note.ts'
 import { registerValidate } from './commands/validate.ts'
 import { registerTypes } from './commands/types.ts'
 import { registerOpen } from './commands/open.ts'
+import { registerSave } from './commands/save.ts'
 
 export function createCLI(): Command {
   const program = new Command('capacities')
@@ -62,6 +63,7 @@ export function createCLI(): Command {
   registerValidate(program)
   registerTypes(program)
   registerOpen(program)
+  registerSave(program)
 
   return program
 }
