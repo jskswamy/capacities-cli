@@ -80,6 +80,10 @@ capacities types <name>                       # field table for named type
 capacities types --name <name>               # bare structureId (shell-friendly)
 capacities open <objectId>                   # open in web app (prints URL if headless/CI)
 capacities open <objectId> --print           # always print URL, never open browser
+
+# Save
+capacities save url <url> [--title <t>] [--desc <d>] [--markdown <notes>]  # save a URL as a weblink/media object
+capacities save file <path> [--title <t>] [--collections <uuid,...>]        # upload a local file as a media object
 ```
 
 The `-f / --field` flag on `create` injects a custom property line into the
@@ -90,6 +94,8 @@ reads a full frontmatter+body blob from a file or stdin (`-`); when set,
 `daily-note` appends content to the daily note. Pass `"-"` to read from
 stdin, making it composable with any pipeline. `--date` backfills a past
 date; `--no-timestamp` suppresses the automatic header Capacities adds.
+
+`save url` saves a URL as a Capacities object. Capacities auto-detects the type from the URL content (weblink, image, PDF, audio, video). Use `--markdown` to attach inline notes to the saved object. `save file` uploads a local file; the object type is inferred from the file extension (`MediaImage`, `MediaPDF`, `MediaAudio`, `MediaVideo`, or `MediaFile`). Use `--collections` to assign the file to one or more collections on creation.
 
 `open` opens an object in the Capacities web app. In headless environments
 (CI, piped output) it prints the URL instead of launching a browser. Pass
