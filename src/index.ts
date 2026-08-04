@@ -31,6 +31,7 @@ import { registerGet } from './commands/get.ts'
 import { registerLink } from './commands/link.ts'
 import { registerCreate } from './commands/create.ts'
 import { registerUpdate } from './commands/update.ts'
+import { registerAppend } from './commands/append.ts'
 import { registerDailyNote } from './commands/daily-note.ts'
 import { registerValidate } from './commands/validate.ts'
 import { registerTypes } from './commands/types.ts'
@@ -59,6 +60,7 @@ export function createCLI(): Command {
   registerLink(program)
   registerCreate(program)
   registerUpdate(program)
+  registerAppend(program)
   registerDailyNote(program)
   registerValidate(program)
   registerTypes(program)

@@ -37,17 +37,17 @@ export async function runUpdate(
   objectId: string,
   propertyKey: string | undefined,
   value: string | undefined,
-  opts: CommandOptions & { markdown?: string }
+  opts: CommandOptions & { props?: string }
 ): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
 
-  if (opts.markdown) {
-    const markdown = opts.markdown === '-' ? await readStdin() : fs.readFileSync(opts.markdown, 'utf8')
+  if (opts.props) {
+    const markdown = opts.props === '-' ? await readStdin() : fs.readFileSync(opts.props, 'utf8')
     await patchMarkdown(space, objectId, markdown)
   } else {
     if (!propertyKey || value === undefined) {
-      throw new CapacitiesError(ExitCode.CONFIG, 'Either --markdown or <propertyKey> <value> is required')
+      throw new CapacitiesError(ExitCode.CONFIG, 'Either --props or <propertyKey> <value> is required')
     }
     const structures = await fetchStructures(space)
     const def = resolvePropertyDef(structures, propertyKey)
@@ -70,15 +70,32 @@ export async function runUpdate(
     }
   }
 
-  printLine(`Updated ${opts.markdown ? 'markdown' : propertyKey} on ${objectId}`, opts)
+  printLine(`Updated ${opts.props ? 'properties' : propertyKey} on ${objectId}`, opts)
 }
 
 export function registerUpdate(program: Command): void {
   program
     .command('update <objectId> [propertyKey] [value]')
-    .description('Update a scalar property or full markdown on an object')
-    .option('--markdown <path>', 'read full frontmatter+body from file path, or "-" for stdin')
-    .action(async (objectId: string, propertyKey: string | undefined, value: string | undefined, cmdOpts: { markdown?: string }) => {
+    .description(
+      'Update a scalar property or frontmatter properties on an object.\n\n' +
+      'Two modes:\n\n' +
+      '  cap update <objectId> <propertyKey> <value>\n' +
+      '    Update a single named property (e.g. description, ring, quadrant).\n' +
+      '    Resolves property names and label values from the space structures.\n' +
+      '    Use `cap types` to list available types and their property names.\n\n' +
+      '  cap update <objectId> --props <file>\n' +
+      '    Read YAML frontmatter from <file> and apply each key as a property\n' +
+      '    update via PATCH /object/markdown. Only frontmatter keys are applied;\n' +
+      '    body content after the closing --- is ignored by the API.\n' +
+      '    Pass "-" to read from stdin.\n\n' +
+      'NOTE: Neither mode can add or replace body content.\n' +
+      'To append content to an object body, use `cap append <objectId>`.'
+    )
+    .option(
+      '--props <path>',
+      'read YAML frontmatter from file (or "-" for stdin) and apply as property updates; body content is ignored by the API'
+    )
+    .action(async (objectId: string, propertyKey: string | undefined, value: string | undefined, cmdOpts: { props?: string }) => {
       const opts = { ...program.opts(), ...cmdOpts }
       await runUpdate(objectId, propertyKey, value, opts).catch(handleApiError)
     })

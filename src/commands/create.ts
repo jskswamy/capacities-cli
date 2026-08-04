@@ -24,7 +24,7 @@
 import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient } from '../client.ts'
+import { createClient, patchMarkdown } from '../client.ts'
 import { cacheSet } from '../cache.ts'
 import { fetchAndPersist } from '../objects.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
@@ -76,7 +76,7 @@ export async function runCreate(
   // Fix title for types where createViaMD doesn't set it — only when we own the frontmatter
   if (!opts.markdown && EMPTY_TITLE_KEY_TYPES.has(objectType)) {
     logger.debug(`applying bare-YAML title fix for ${objectType}`)
-    await (client.object.markdown as any).update({ id: objectId, markdown: `title: ${title}` })
+    await patchMarkdown(space, objectId, `---\ntitle: ${title}\n---\n`)
   }
 
   try {

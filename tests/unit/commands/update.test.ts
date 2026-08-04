@@ -112,13 +112,13 @@ describe('update command', () => {
     await expect(runUpdate('obj-1', 'personalities', 'p1', {})).rejects.toThrow('use `cap link`')
   })
 
-  it('calls patchMarkdown when --markdown flag is set', async () => {
+  it('calls patchMarkdown when --props flag is set', async () => {
     mockPatchMarkdown.mockResolvedValue(undefined)
     mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
     const mdPath = path.join(tmpDir, 'grafana.md')
     fs.writeFileSync(mdPath, '---\nquadrant: Tool\nring: Adopt\n---\n')
     const { runUpdate } = await import('../../../src/commands/update.ts')
-    await runUpdate('obj-2', undefined, undefined, { markdown: mdPath })
+    await runUpdate('obj-2', undefined, undefined, { props: mdPath })
     expect(mockPatchMarkdown).toHaveBeenCalledWith(
       expect.objectContaining({ authType: 'api_token' }),
       'obj-2',
@@ -127,10 +127,10 @@ describe('update command', () => {
     expect(mockUpdate).not.toHaveBeenCalled()
   })
 
-  it('throws CONFIG error when neither --markdown nor propertyKey provided', async () => {
+  it('throws CONFIG error when neither --props nor propertyKey provided', async () => {
     const { runUpdate } = await import('../../../src/commands/update.ts')
     await expect(runUpdate('obj-3', undefined, undefined, {})).rejects.toThrow(
-      'Either --markdown or <propertyKey> <value> is required'
+      'Either --props or <propertyKey> <value> is required'
     )
   })
 

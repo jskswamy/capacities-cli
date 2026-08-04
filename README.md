@@ -73,6 +73,8 @@ capacities link <objectId> <propertyKey> <targetId...>  # set entity field (one 
 capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>] \
                   [-f key=value ...] [--markdown <path|->]
 capacities update <objectId> <propertyKey> <value>
+capacities update <objectId> --props <file|->   # apply frontmatter props only
+capacities append <objectId> [content] [--markdown <file|->] [--position end|start]
 capacities daily-note <markdown|-> [--date <YYYY-MM-DD>] [--no-timestamp]
 capacities validate --type <type> [--json]        # reads stdin, writes corrected markdown
 capacities types                              # table: name | structureId
@@ -90,6 +92,17 @@ The `-f / --field` flag on `create` injects a custom property line into the
 frontmatter (repeatable: `-f ring=Trial -f quadrant=Tool`). `--markdown`
 reads a full frontmatter+body blob from a file or stdin (`-`); when set,
 `--title` is optional and `--field` is ignored.
+
+`update` has two modes: `<propertyKey> <value>` updates a single named property
+(resolves label values automatically); `--props <file>` reads YAML frontmatter
+from a file and applies each key as a property update via `PATCH /object/markdown`.
+Body content after the closing `---` is ignored by the API — use `append` instead.
+
+`append` adds markdown content to an object's body via `POST /blocks/append`. The
+API converts the markdown to blocks and inserts them at the specified position
+(`end` by default, or `start`). Pass content inline, via `--markdown <file>`, or
+pipe it with `--markdown -`. This is the only way to add body content via the
+CLI — `update --props` only touches properties.
 
 `daily-note` appends content to the daily note. Pass `"-"` to read from
 stdin, making it composable with any pipeline. `--date` backfills a past
@@ -139,7 +152,7 @@ Every read is cached locally to avoid redundant API calls:
 | `get` | 1 hour | object ID |
 | structure list (internal) | 24 hours | per space |
 
-Cache is stored under `~/.cache/capacities/<space>/`. After mutations (`link`, `create`, `update`) the affected object's cache entry is busted automatically.
+Cache is stored under `~/.cache/capacities/<space>/`. After mutations (`link`, `create`, `update`, `append`) the affected object's cache entry is busted automatically.
 
 To clear everything for a space: `capacities auth remove <name>` followed by `capacities auth add <name>`.
 

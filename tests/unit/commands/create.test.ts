@@ -27,16 +27,21 @@ import * as os from 'os'
 import * as path from 'path'
 
 const mockCreate = vi.fn()
-const mockMarkdownUpdate = vi.fn()
 const mockMarkdownGet = vi.fn()
+const mockPatchMarkdown = vi.fn()
 
 vi.mock('@capacities/api', () => ({
   CapacitiesClient: vi.fn().mockImplementation(() => ({
     object: {
-      markdown: { create: mockCreate, update: mockMarkdownUpdate, get: mockMarkdownGet },
+      markdown: { create: mockCreate, get: mockMarkdownGet },
     },
   })),
 }))
+
+vi.mock('../../../src/client.ts', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('../../../src/client.ts')>()
+  return { ...mod, patchMarkdown: mockPatchMarkdown }
+})
 
 describe('create command', () => {
   let tmpDir: string
@@ -64,14 +69,15 @@ describe('create command', () => {
 
   it('sends bare-YAML title update for Organization type', async () => {
     mockCreate.mockResolvedValue({ id: 'new-org' })
-    mockMarkdownUpdate.mockResolvedValue({})
+    mockPatchMarkdown.mockResolvedValue(undefined)
     mockMarkdownGet.mockResolvedValue('---\ntype: Organization\ntitle: Bell Labs\n---\n')
     const { runCreate } = await import('../../../src/commands/create.ts')
     await runCreate('Organization', 'Bell Labs', {})
-    expect(mockMarkdownUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      id: 'new-org',
-      markdown: 'title: Bell Labs',
-    }))
+    expect(mockPatchMarkdown).toHaveBeenCalledWith(
+      expect.anything(),
+      'new-org',
+      expect.stringContaining('title: Bell Labs'),
+    )
   })
 
   it('does NOT send bare-YAML patch for types that support title in createViaMD', async () => {
@@ -79,7 +85,7 @@ describe('create command', () => {
     mockMarkdownGet.mockResolvedValue('---\ntype: Page\ntitle: My Page\n---\n')
     const { runCreate } = await import('../../../src/commands/create.ts')
     await runCreate('Page', 'My Page', {})
-    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+    expect(mockPatchMarkdown).not.toHaveBeenCalled()
   })
 
   it('prints the new object ID', async () => {
@@ -111,7 +117,7 @@ describe('create command', () => {
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
       markdown: '---\ntitle: From File\n---\nBody here',
     }))
-    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+    expect(mockPatchMarkdown).not.toHaveBeenCalled()
   })
 
   it('--markdown - reads from stdin', async () => {

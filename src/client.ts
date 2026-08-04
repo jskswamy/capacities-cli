@@ -31,14 +31,25 @@ import * as path from 'path'
 
 const API_BASE = 'https://api.capacities.io'
 
+function dbg(msg: string): void {
+  if (process.env.CAPACITIES_LOG_LEVEL === 'debug') process.stderr.write(`[capacities:debug] ${msg}\n`)
+}
+
 // ponytail: raw fetch — SDK doesn't expose PATCH /object/markdown
 export async function patchMarkdown(space: ResolvedSpace, id: string, markdown: string): Promise<void> {
   const token = space.authType === 'api_token' ? space.apiToken : space.accessToken
+  dbg(`patchMarkdown → PATCH /object/markdown id=${id} bytes=${markdown.length}`)
   const res = await fetch(`${API_BASE}/object/markdown`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      'x-capacities-api-version': '1.0.0',
+    },
     body: JSON.stringify({ id, markdown }),
   })
+  const body = await res.text()
+  dbg(`patchMarkdown ← ${res.status} body=${body.slice(0, 300)}`)
   if (!res.ok) {
     throw Object.assign(new Error(String(res.status)), { status: res.status })
   }

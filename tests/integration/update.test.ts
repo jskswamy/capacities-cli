@@ -111,7 +111,7 @@ describe('capacities update', () => {
     })
   })
 
-  it('PATCH /object/markdown sends frontmatter', async () => {
+  it('PATCH /object/markdown sends frontmatter via --props', async () => {
     let capturedBody: unknown
     server.use(
       http.patch('https://api.capacities.io/object/markdown', async ({ request }) => {
@@ -124,15 +124,15 @@ describe('capacities update', () => {
     )
 
     const mdContent = '---\nquadrant: Tool\nring: Adopt\n---\n'
-    const tmpFile = '/tmp/cap-update-md-test.md'
+    const tmpFile = '/tmp/cap-update-props-test.md'
     fs.writeFileSync(tmpFile, mdContent)
     const { exitCode, stdout } = await runCLI(
-      ['update', 'obj-1', '--markdown', tmpFile],
+      ['update', 'obj-1', '--props', tmpFile],
       { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-update-test.toml', CAPACITIES_SPACE: 'personal' }
     )
     fs.unlinkSync(tmpFile)
     expect(exitCode).toBe(0)
-    expect(stdout).toContain('Updated markdown on obj-1')
+    expect(stdout).toContain('Updated properties on obj-1')
     expect(capturedBody).toMatchObject({ id: 'obj-1', markdown: mdContent })
   })
 
