@@ -39,9 +39,7 @@ afterAll(() => server.close())
 
 describe('capacities get', () => {
   it('outputs markdown to stdout', async () => {
-    server.use(
-      http.get('https://api.capacities.io/object/markdown', () => HttpResponse.json(MARKDOWN_FIXTURE))
-    )
+    server.use(http.get('https://api.capacities.io/object/markdown', () => HttpResponse.json(MARKDOWN_FIXTURE)))
     const { exitCode, stdout } = await runCLI(['get', OBJ_ID], {
       CAPACITIES_TOKEN: 'cap-api-test',
       CAPACITIES_CONFIG: '/tmp/cap-integ-get.toml',
@@ -52,11 +50,7 @@ describe('capacities get', () => {
   })
 
   it('exits 4 on 404', async () => {
-    server.use(
-      http.get('https://api.capacities.io/object/markdown', () =>
-        new HttpResponse(null, { status: 404 })
-      )
-    )
+    server.use(http.get('https://api.capacities.io/object/markdown', () => new HttpResponse(null, { status: 404 })))
     const { exitCode } = await runCLI(['get', OBJ_ID_404], {
       CAPACITIES_TOKEN: 'cap-api-test',
       CAPACITIES_CONFIG: '/tmp/cap-integ-get.toml',

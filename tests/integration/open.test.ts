@@ -59,9 +59,7 @@ describe('capacities open', () => {
     server.use(http.get(SPACE_ENDPOINT, () => HttpResponse.json(SPACE_FIXTURE)))
     const { exitCode, stdout } = await runCLI(['open', OBJ_ID, '--print'], getENV())
     expect(exitCode).toBe(0)
-    expect(stdout.trim()).toBe(
-      `https://app.capacities.io/${SPACE_FIXTURE.id}/${OBJ_ID}`
-    )
+    expect(stdout.trim()).toBe(`https://app.capacities.io/${SPACE_FIXTURE.id}/${OBJ_ID}`)
   })
 
   it('headless mode (isTTY=false) prints URL without launching browser', async () => {

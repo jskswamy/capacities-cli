@@ -37,26 +37,29 @@ export async function runTypes(
 ): Promise<void> {
   const space = await resolveSpace(opts.space)
   // cast: fetchStructures types StructureItem as {id,title} but cache holds full payload
-  const { structures } = await fetchStructures(space) as { structures: FullStructure[] }
+  const { structures } = (await fetchStructures(space)) as { structures: FullStructure[] }
 
   // --name flag: bare structureId for shell substitution
   if (nameFlag) {
-    const found = structures.find(s => s.title === nameFlag)
+    const found = structures.find((s) => s.title === nameFlag)
     if (!found) throw new CapacitiesError(ExitCode.NOT_FOUND, `Unknown type "${nameFlag}"`)
-    if (opts.json) { printJson({ name: found.title, structureId: found.id }, opts); return }
+    if (opts.json) {
+      printJson({ name: found.title, structureId: found.id }, opts)
+      return
+    }
     printLine(found.id, opts)
     return
   }
 
   // positional name: detail view (structureId header + field table)
   if (name) {
-    const found = structures.find(s => s.title === name)
+    const found = structures.find((s) => s.title === name)
     if (!found) throw new CapacitiesError(ExitCode.NOT_FOUND, `Unknown type "${name}"`)
     const propDefs: PropDef[] = found.propertyDefinitions ?? []
-    const fields = propDefs.map(p => ({
+    const fields = propDefs.map((p) => ({
       name: p.name || p.type,
       type: p.type,
-      values: p.labelSet ? p.labelSet.map(l => l.name) : [],
+      values: p.labelSet ? p.labelSet.map((l) => l.name) : [],
     }))
     if (opts.json) {
       printJson({ name: found.title, structureId: found.id, fields }, opts)
@@ -64,18 +67,21 @@ export async function runTypes(
     }
     printLine(`${found.title}  (${found.id})`, opts)
     printLine('', opts)
-    const rows = propDefs.map(p => ({
+    const rows = propDefs.map((p) => ({
       field: p.name || p.type,
       type: p.type,
-      values: p.labelSet ? p.labelSet.map(l => l.name).join(', ') : '',
+      values: p.labelSet ? p.labelSet.map((l) => l.name).join(', ') : '',
     }))
     printTable(rows, opts)
     return
   }
 
   // no name: list all types
-  const rows = structures.map(s => ({ name: s.title, structureId: s.id }))
-  if (opts.json) { printJson(rows, opts); return }
+  const rows = structures.map((s) => ({ name: s.title, structureId: s.id }))
+  if (opts.json) {
+    printJson(rows, opts)
+    return
+  }
   printTable(rows, opts)
 }
 

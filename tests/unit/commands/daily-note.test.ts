@@ -48,10 +48,7 @@ describe('daily-note command', () => {
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
     fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-    fs.writeFileSync(
-      path.join(tmpDir, 'capacities', 'config.toml'),
-      'active_space = "personal"\n[spaces.personal]\n'
-    )
+    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\n')
     mockAppend.mockResolvedValue({})
   })
 
@@ -67,38 +64,28 @@ describe('daily-note command', () => {
   it('passes inline markdown to SDK append', async () => {
     const { runDailyNote } = await import('../../../src/commands/daily-note.ts')
     await runDailyNote('Shipped v0.2.', { timestamp: true })
-    expect(mockAppend).toHaveBeenCalledWith(
-      expect.objectContaining({ markdown: 'Shipped v0.2.' })
-    )
+    expect(mockAppend).toHaveBeenCalledWith(expect.objectContaining({ markdown: 'Shipped v0.2.' }))
   })
 
   it('reads from stdin when argument is "-"', async () => {
     const { Readable } = await import('stream')
     const stdinContent = 'Content from pipe'
-    vi.spyOn(process, 'stdin', 'get').mockReturnValue(
-      Readable.from([Buffer.from(stdinContent)]) as any
-    )
+    vi.spyOn(process, 'stdin', 'get').mockReturnValue(Readable.from([Buffer.from(stdinContent)]) as any)
     const { runDailyNote } = await import('../../../src/commands/daily-note.ts')
     await runDailyNote('-', { timestamp: true })
-    expect(mockAppend).toHaveBeenCalledWith(
-      expect.objectContaining({ markdown: stdinContent })
-    )
+    expect(mockAppend).toHaveBeenCalledWith(expect.objectContaining({ markdown: stdinContent }))
   })
 
   it('wires --date to SDK body', async () => {
     const { runDailyNote } = await import('../../../src/commands/daily-note.ts')
     await runDailyNote('Late entry.', { date: '2026-07-15', timestamp: true })
-    expect(mockAppend).toHaveBeenCalledWith(
-      expect.objectContaining({ date: '2026-07-15' })
-    )
+    expect(mockAppend).toHaveBeenCalledWith(expect.objectContaining({ date: '2026-07-15' }))
   })
 
   it('sets noTimeStamp: true when --no-timestamp is passed', async () => {
     const { runDailyNote } = await import('../../../src/commands/daily-note.ts')
     await runDailyNote('Raw entry.', { timestamp: false })
-    expect(mockAppend).toHaveBeenCalledWith(
-      expect.objectContaining({ noTimeStamp: true })
-    )
+    expect(mockAppend).toHaveBeenCalledWith(expect.objectContaining({ noTimeStamp: true }))
   })
 
   it('does not include noTimeStamp when timestamp is true', async () => {

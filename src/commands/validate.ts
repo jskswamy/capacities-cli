@@ -38,7 +38,8 @@ type ValidationResult = {
 
 // O(m*n) single-row Levenshtein — adequate for short property name strings
 function levenshtein(a: string, b: string): number {
-  const m = a.length, n = b.length
+  const m = a.length,
+    n = b.length
   const row = Array.from({ length: n + 1 }, (_, i) => i)
   for (let i = 1; i <= m; i++) {
     let prev = row[0]!
@@ -73,21 +74,21 @@ function parseFrontmatter(raw: string): { fields: Record<string, string>; body: 
 }
 
 function tryHostname(url: string): string {
-  try { return new URL(url).hostname } catch { return '' }
+  try {
+    return new URL(url).hostname
+  } catch {
+    return ''
+  }
 }
 
-export async function runValidate(
-  typeName: string,
-  opts: CommandOptions
-): Promise<void> {
+export async function runValidate(typeName: string, opts: CommandOptions): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
 
   // Phase 0: fetch live type structure
-  const resp = await fetchWithCache(
-    space.name, 'structures.json', TTL.STRUCTURES,
-    () => (client.space as any).structures()
-  ) as any
+  const resp = (await fetchWithCache(space.name, 'structures.json', TTL.STRUCTURES, () =>
+    (client.space as any).structures()
+  )) as any
   const structures: any[] = Array.isArray(resp) ? resp : (resp?.structures ?? [])
 
   const struct = structures.find((s: any) => s.title === typeName)
@@ -111,28 +112,47 @@ export async function runValidate(
   const filled: Record<string, string> = { ...fields }
 
   // Phase 2a: inject type if missing
-  if (!filled.type) { filled.type = typeName; result.filled.push('type') }
+  if (!filled.type) {
+    filled.type = typeName
+    result.filled.push('type')
+  }
 
   // Phase 2b: fuzzy field-name correction
   for (const key of Object.keys(filled)) {
     const lk = key.toLowerCase()
     if (UNIVERSAL_FIELDS.has(lk)) continue
     if (!knownFields.has(lk)) {
-      let bestDist = Infinity, bestKey = ''
+      let bestDist = Infinity,
+        bestKey = ''
       for (const k of knownFields.keys()) {
         const d = levenshtein(lk, k)
-        if (d < bestDist) { bestDist = d; bestKey = k }
+        if (d < bestDist) {
+          bestDist = d
+          bestKey = k
+        }
       }
       if (bestDist <= 2 && bestKey) {
         // bestKey is already lowercase (from knownFields.keys())
-        result.warnings.push({ field: key, code: 'FIELD_FUZZY', from: key, to: bestKey, message: `Unknown field "${key}", did you mean "${bestKey}"?` })
+        result.warnings.push({
+          field: key,
+          code: 'FIELD_FUZZY',
+          from: key,
+          to: bestKey,
+          message: `Unknown field "${key}", did you mean "${bestKey}"?`,
+        })
         filled[bestKey] = filled[key]!
         delete filled[key]
       }
       // unknown with no close match → keep as-is, no warning
     } else if (key !== lk) {
       // Frontmatter keys are always lowercase; Title Case from API name is display-only
-      result.warnings.push({ field: key, code: 'FIELD_CASE', from: key, to: lk, message: `Field "${key}" should be "${lk}"` })
+      result.warnings.push({
+        field: key,
+        code: 'FIELD_CASE',
+        from: key,
+        to: lk,
+        message: `Field "${key}" should be "${lk}"`,
+      })
       filled[lk] = filled[key]!
       delete filled[key]
     }
@@ -140,21 +160,37 @@ export async function runValidate(
 
   // Phase 2c: label value normalization (exact case-insensitive, then fuzzy ≤2)
   for (const [lk, labels] of labelFields) {
-    const val = filled[lk]  // key is always lowercase after Phase 2b
+    const val = filled[lk] // key is always lowercase after Phase 2b
     if (!val) continue
     const vl = val.toLowerCase()
     const exact = labels.find((l: string) => l.toLowerCase() === vl)
     if (exact && exact !== val) {
-      result.warnings.push({ field: lk, code: 'NORMALIZED', from: val, to: exact, message: `Value "${val}" normalized to "${exact}"` })
+      result.warnings.push({
+        field: lk,
+        code: 'NORMALIZED',
+        from: val,
+        to: exact,
+        message: `Value "${val}" normalized to "${exact}"`,
+      })
       filled[lk] = exact
     } else if (!exact) {
-      let bestDist = Infinity, bestLabel = ''
+      let bestDist = Infinity,
+        bestLabel = ''
       for (const l of labels) {
         const d = levenshtein(vl, l.toLowerCase())
-        if (d < bestDist) { bestDist = d; bestLabel = l }
+        if (d < bestDist) {
+          bestDist = d
+          bestLabel = l
+        }
       }
       if (bestDist <= 2 && bestLabel) {
-        result.warnings.push({ field: lk, code: 'NORMALIZED', from: val, to: bestLabel, message: `Value "${val}" normalized to "${bestLabel}"` })
+        result.warnings.push({
+          field: lk,
+          code: 'NORMALIZED',
+          from: val,
+          to: bestLabel,
+          message: `Value "${val}" normalized to "${bestLabel}"`,
+        })
         filled[lk] = bestLabel
       } else {
         result.warnings.push({ field: lk, code: 'UNKNOWN_VALUE', message: `Unknown value "${val}" for field "${lk}"` })
@@ -170,7 +206,7 @@ export async function runValidate(
   }
   if (WEBLINK_TYPES.has(typeName) && !filled.category && filled.iframeUrl) {
     const host = tryHostname(filled.iframeUrl)
-    const isVideo = ['youtube.com', 'youtu.be', 'vimeo.com'].some(h => host.includes(h))
+    const isVideo = ['youtube.com', 'youtu.be', 'vimeo.com'].some((h) => host.includes(h))
     filled.category = isVideo ? 'Video' : 'Article'
     result.filled.push('category')
     result.warnings.push({ field: 'category', code: 'INFERRED', message: `category inferred as "${filled.category}"` })
@@ -180,7 +216,13 @@ export async function runValidate(
   if (filled.tags) {
     const stripped = filled.tags.replace(/^['"]|['"]$/g, '')
     if (stripped !== filled.tags) {
-      result.warnings.push({ field: 'tags', code: 'TAG_FORMAT', from: filled.tags, to: stripped, message: 'Removed surrounding quotes from tags' })
+      result.warnings.push({
+        field: 'tags',
+        code: 'TAG_FORMAT',
+        from: filled.tags,
+        to: stripped,
+        message: 'Removed surrounding quotes from tags',
+      })
       filled.tags = stripped
     }
   }
@@ -192,11 +234,17 @@ export async function runValidate(
   }
   if (WEBLINK_TYPES.has(typeName) && !filled.iframeUrl) {
     result.valid = false
-    result.errors.push({ field: 'iframeUrl', code: 'REQUIRED', message: 'iframeUrl is required for Weblink / MediaWebResource' })
+    result.errors.push({
+      field: 'iframeUrl',
+      code: 'REQUIRED',
+      message: 'iframeUrl is required for Weblink / MediaWebResource',
+    })
   }
 
   // Assemble corrected frontmatter
-  result.corrected = `---\n${Object.entries(filled).map(([k, v]) => `${k}: ${v}`).join('\n')}\n---\n${body}`
+  result.corrected = `---\n${Object.entries(filled)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join('\n')}\n---\n${body}`
 
   // Output
   if (opts.json) {

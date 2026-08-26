@@ -60,10 +60,12 @@ export async function patchMarkdown(space: ResolvedSpace, id: string, markdown: 
 // PATCH. Body replacement is simulated here as append-then-delete-old (never delete-then-append),
 // so a failure anywhere in this sequence leaves duplicate content, never lost content.
 export async function replaceBody(client: CapacitiesClient, objectId: string, markdown: string): Promise<void> {
-  const before = await client.object.get({ id: objectId }) as unknown as { blocks?: Record<string, { id: string }[]> }
+  const before = (await client.object.get({ id: objectId })) as unknown as { blocks?: Record<string, { id: string }[]> }
   // blocks is keyed by the structure's content property id, which varies per structure —
   // flatten across all keys rather than assuming a fixed key like "content"
-  const oldBlockIds = Object.values(before.blocks ?? {}).flat().map((b) => b.id)
+  const oldBlockIds = Object.values(before.blocks ?? {})
+    .flat()
+    .map((b) => b.id)
 
   await (client.blocks as any).append({ id: objectId, markdown, position: { type: 'end' } })
 
@@ -87,9 +89,17 @@ export async function replaceBody(client: CapacitiesClient, objectId: string, ma
 // ponytail: covers common media types; extend when a new type is needed
 const MIME_MAP: Record<string, string> = {
   pdf: 'application/pdf',
-  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
-  mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav',
-  mp4: 'video/mp4', mov: 'video/quicktime', mkv: 'video/x-matroska',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  mp3: 'audio/mpeg',
+  m4a: 'audio/mp4',
+  wav: 'audio/wav',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  mkv: 'video/x-matroska',
 }
 
 export async function uploadMedia(
@@ -117,7 +127,7 @@ export async function uploadMedia(
     }),
   })
   if (!initRes.ok) throw Object.assign(new Error(String(initRes.status)), { status: initRes.status })
-  const { id } = await initRes.json() as { id: string }
+  const { id } = (await initRes.json()) as { id: string }
 
   try {
     const putRes = await fetch(`${API_BASE}/object/media/upload/part?id=${id}&partNumber=1`, {
@@ -133,7 +143,7 @@ export async function uploadMedia(
       body: JSON.stringify({ id }),
     })
     if (!completeRes.ok) throw Object.assign(new Error(String(completeRes.status)), { status: completeRes.status })
-    const result = await completeRes.json() as { id: string }
+    const result = (await completeRes.json()) as { id: string }
     return result.id
   } catch (e) {
     await fetch(`${API_BASE}/object/media/upload/abort`, {

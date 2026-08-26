@@ -28,7 +28,10 @@ import { server, runCLI, http, HttpResponse } from './helpers.ts'
 const DAILY_NOTE_ENDPOINT = 'https://api.capacities.io/blocks/daily-note/append'
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
-afterEach(() => { server.resetHandlers(); vi.restoreAllMocks() })
+afterEach(() => {
+  server.resetHandlers()
+  vi.restoreAllMocks()
+})
 afterAll(() => server.close())
 
 describe('capacities daily-note', () => {
@@ -40,10 +43,11 @@ describe('capacities daily-note', () => {
         return HttpResponse.json({})
       })
     )
-    const { exitCode } = await runCLI(
-      ['daily-note', 'Shipped v0.2.'],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-daily-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode } = await runCLI(['daily-note', 'Shipped v0.2.'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-daily-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(0)
     expect((requestBody as any)?.markdown).toBe('Shipped v0.2.')
   })
@@ -56,24 +60,22 @@ describe('capacities daily-note', () => {
         return HttpResponse.json({})
       })
     )
-    const { exitCode } = await runCLI(
-      ['daily-note', '--date', '2026-07-15', 'Late entry.'],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-daily-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode } = await runCLI(['daily-note', '--date', '2026-07-15', 'Late entry.'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-daily-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(0)
     expect((requestBody as any)?.date).toBe('2026-07-15')
   })
 
   it('exits 3 on API error', async () => {
-    server.use(
-      http.post(DAILY_NOTE_ENDPOINT, () =>
-        new HttpResponse(null, { status: 500 })
-      )
-    )
-    const { exitCode } = await runCLI(
-      ['daily-note', 'Test'],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-daily-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    server.use(http.post(DAILY_NOTE_ENDPOINT, () => new HttpResponse(null, { status: 500 })))
+    const { exitCode } = await runCLI(['daily-note', 'Test'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-daily-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(3)
   })
 })

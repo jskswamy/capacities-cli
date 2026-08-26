@@ -77,14 +77,19 @@ const isMain = (() => {
   try {
     const real = realpathSync(process.argv[1] ?? '')
     return real.endsWith('index.js') || real.endsWith('index.ts')
-  } catch { return false }
+  } catch {
+    return false
+  }
 })()
 if (isMain) {
   const program = createCLI()
   program.parseAsync(process.argv).catch((err: unknown) => {
     if (err instanceof ExitError) process.exit(err.code)
     if (err instanceof CommanderError) process.exit(err.exitCode)
-    if (err instanceof CapacitiesError) { logger.error(formatError(err)); process.exit(toExitCode(err)) }
+    if (err instanceof CapacitiesError) {
+      logger.error(formatError(err))
+      process.exit(toExitCode(err))
+    }
     logger.error(formatError(err))
     process.exit(ExitCode.UNEXPECTED)
   })

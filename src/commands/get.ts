@@ -35,8 +35,12 @@ export async function runGet(objectId: string, opts: CommandOptions): Promise<vo
     return client.object.markdown.get({ id: objectId })
   })
   // SDK returns { id, structureId, markdown } — unit tests may mock a plain string
-  const markdown = typeof result === 'string' ? result : (result as { markdown?: string }).markdown ?? JSON.stringify(result)
-  if (opts.json) { printJson({ objectId, markdown }, opts); return }
+  const markdown =
+    typeof result === 'string' ? result : ((result as { markdown?: string }).markdown ?? JSON.stringify(result))
+  if (opts.json) {
+    printJson({ objectId, markdown }, opts)
+    return
+  }
   printLine(markdown, opts)
 }
 

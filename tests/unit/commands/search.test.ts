@@ -51,7 +51,10 @@ describe('search command', () => {
 
     // Write minimal config
     fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n')
+    fs.writeFileSync(
+      path.join(tmpDir, 'capacities', 'config.toml'),
+      'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n'
+    )
   })
 
   afterEach(() => {
@@ -103,7 +106,7 @@ describe('search command', () => {
     mockSearch.mockResolvedValue({ results: [{ id: 'x', structureId: 'RootPage', title: 'My Page' }] })
     const { runSearch } = await import('../../../src/commands/search.ts')
     await runSearch('q', undefined, {})
-    const written = outSpy.mock.calls.map(c => c[0]).join('')
+    const written = outSpy.mock.calls.map((c) => c[0]).join('')
     expect(written).toContain('Page')
   })
 
@@ -112,7 +115,7 @@ describe('search command', () => {
     mockSearch.mockResolvedValue({ results: [{ id: 'x', structureId: 'custom-uuid-123', title: 'Dune' }] })
     const { runSearch } = await import('../../../src/commands/search.ts')
     await runSearch('q', undefined, {})
-    const written = outSpy.mock.calls.map(c => c[0]).join('')
+    const written = outSpy.mock.calls.map((c) => c[0]).join('')
     expect(written).toContain('Book')
   })
 
@@ -121,7 +124,7 @@ describe('search command', () => {
     mockSearch.mockResolvedValue(data)
     const { runSearch } = await import('../../../src/commands/search.ts')
     await runSearch('q', undefined, { json: true })
-    const written = outSpy.mock.calls.map(c => c[0]).join('')
+    const written = outSpy.mock.calls.map((c) => c[0]).join('')
     expect(JSON.parse(written)).toMatchObject(data)
   })
 })

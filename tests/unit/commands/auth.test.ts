@@ -63,14 +63,17 @@ vi.mock('@capacities/api', () => ({
 }))
 
 // --- helpers ---
-function makeConfig(tmpDir: string, content = 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n') {
+function makeConfig(
+  tmpDir: string,
+  content = 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "/tmp/objs"\n'
+) {
   fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
   fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), content)
 }
 
 // ponytail: restore only explicit spies, not vi.restoreAllMocks() which resets vi.fn() impls
 function restoreSpies(...spies: Array<ReturnType<typeof vi.spyOn>>) {
-  spies.forEach(s => s.mockRestore())
+  spies.forEach((s) => s.mockRestore())
 }
 
 describe('auth list', () => {
@@ -100,7 +103,7 @@ describe('auth list', () => {
     makeConfig(tmpDir)
     const { listSpaces } = await import('../../../src/commands/auth.ts')
     listSpaces({})
-    const written = outSpy.mock.calls.map(c => c[0]).join('')
+    const written = outSpy.mock.calls.map((c) => c[0]).join('')
     expect(written).toContain('personal')
   })
 })

@@ -50,8 +50,14 @@ export async function runCLI(args: string[], env: Record<string, string> = {}): 
   const origStderrWrite = process.stderr.write.bind(process.stderr)
   const origEnv = { ...process.env }
 
-  process.stdout.write = ((chunk: string) => { stdoutChunks.push(chunk); return true }) as typeof process.stdout.write
-  process.stderr.write = ((chunk: string) => { stderrChunks.push(chunk); return true }) as typeof process.stderr.write
+  process.stdout.write = ((chunk: string) => {
+    stdoutChunks.push(chunk)
+    return true
+  }) as typeof process.stdout.write
+  process.stderr.write = ((chunk: string) => {
+    stderrChunks.push(chunk)
+    return true
+  }) as typeof process.stderr.write
   Object.assign(process.env, env)
 
   let exitCode = 0
@@ -62,8 +68,10 @@ export async function runCLI(args: string[], env: Record<string, string> = {}): 
   } catch (err) {
     if (err instanceof ExitError) exitCode = err.code
     else if (err instanceof CommanderError) exitCode = err.exitCode
-    else if (err instanceof CapacitiesError) { process.stderr.write(formatError(err) + '\n'); exitCode = toExitCode(err) }
-    else exitCode = 1
+    else if (err instanceof CapacitiesError) {
+      process.stderr.write(formatError(err) + '\n')
+      exitCode = toExitCode(err)
+    } else exitCode = 1
   } finally {
     process.stdout.write = origStdoutWrite
     process.stderr.write = origStderrWrite
@@ -78,9 +86,7 @@ export async function runCLI(args: string[], env: Record<string, string> = {}): 
 }
 
 export function withStdin(content: string): void {
-  vi.spyOn(process, 'stdin', 'get').mockReturnValue(
-    Readable.from([Buffer.from(content)]) as any
-  )
+  vi.spyOn(process, 'stdin', 'get').mockReturnValue(Readable.from([Buffer.from(content)]) as any)
 }
 
 export { http, HttpResponse }

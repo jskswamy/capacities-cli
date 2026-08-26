@@ -36,9 +36,9 @@ const STRUCTURES_FIXTURE = {
       id: 'bc0b170d-c1a1-46ac-bd8e-95cff1da3009',
       title: 'Blip',
       propertyDefinitions: [
-        { name: 'ring',     type: 'label', labelSet: [{ name: 'Adopt' }, { name: 'Trial' }] },
+        { name: 'ring', type: 'label', labelSet: [{ name: 'Adopt' }, { name: 'Trial' }] },
         { name: 'quadrant', type: 'label', labelSet: [{ name: 'Tool' }, { name: 'Technique' }] },
-        { name: 'link',     type: 'text' },
+        { name: 'link', type: 'text' },
       ],
     },
     {

@@ -22,11 +22,13 @@
 
 // tests/unit/output.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { printLine, printJson, printTable } from '../../src/output.ts'
+import { printJson, printTable } from '../../src/output.ts'
 
 describe('printTable', () => {
   let spy: ReturnType<typeof vi.spyOn>
-  beforeEach(() => { spy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true) })
+  beforeEach(() => {
+    spy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+  })
   afterEach(() => spy.mockRestore())
 
   it('outputs (no results) for empty array', () => {
@@ -41,7 +43,7 @@ describe('printTable', () => {
 
   it('renders header, divider, and row', () => {
     printTable([{ id: '1', name: 'Alice' }], {})
-    const written = (spy.mock.calls[0][0] as string)
+    const written = spy.mock.calls[0][0] as string
     const lines = written.split('\n').filter(Boolean)
     expect(lines[0]).toMatch(/id\s+name/)
     expect(lines[1]).toMatch(/--+/)
@@ -51,7 +53,9 @@ describe('printTable', () => {
 
 describe('printJson', () => {
   let spy: ReturnType<typeof vi.spyOn>
-  beforeEach(() => { spy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true) })
+  beforeEach(() => {
+    spy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+  })
   afterEach(() => spy.mockRestore())
 
   it('outputs indented JSON', () => {

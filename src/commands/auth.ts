@@ -28,13 +28,17 @@ import * as path from 'path'
 import * as readline from 'readline'
 import { spawnSync } from 'child_process'
 import {
-  readConfig, writeConfig, getSpaceFile, getDefaultObjectsDir, getAgeKeyFile,
+  readConfig,
+  writeConfig,
+  getSpaceFile,
+  getDefaultObjectsDir,
+  getAgeKeyFile,
   type ResolvedSpace,
 } from '../config.ts'
 import { decryptSecrets, encryptSecrets, generateAgeKeypair, serializeSecrets } from '../secrets.ts'
 import { createClient } from '../client.ts'
 import { cacheDeleteSpace } from '../cache.ts'
-import { CapacitiesError, ExitCode, exit, handleApiError } from '../errors.ts'
+import { CapacitiesError, ExitCode, handleApiError } from '../errors.ts'
 import { printLine, printTable, type OutputOptions } from '../output.ts'
 
 export function listSpaces(opts: OutputOptions): void {
@@ -66,7 +70,7 @@ function openEditor(file: string): void {
 }
 
 function promptLine(question: string, defaultVal: string): Promise<string> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
     rl.question(`${question} [${defaultVal}]: `, (answer) => {
       rl.close()
@@ -80,7 +84,9 @@ async function editWithTempFile(
   initial: string,
   onSave: (content: string) => Promise<void>
 ): Promise<void> {
-  const tmpFile = path.join(os.tmpdir(), `${prefix}-${process.pid}.toml`)
+  // prefix is a hardcoded template embedding the space name from this process's own
+  // CLI args, not a remote or API-supplied source — no trust boundary is crossed here.
+  const tmpFile = path.join(os.tmpdir(), `${prefix}-${process.pid}.toml`) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
   fs.writeFileSync(tmpFile, initial, { mode: 0o600 })
   try {
     openEditor(tmpFile)
@@ -90,12 +96,7 @@ async function editWithTempFile(
   }
 }
 
-async function saveSpace(
-  name: string,
-  objectsDir: string,
-  token: string,
-  opts: OutputOptions
-): Promise<void> {
+async function saveSpace(name: string, objectsDir: string, token: string, opts: OutputOptions): Promise<void> {
   if (!token.startsWith('cap-api-')) {
     throw new CapacitiesError(ExitCode.CONFIG, `Invalid token format. Expected "cap-api-..." prefix.`)
   }
@@ -115,11 +116,7 @@ async function saveSpace(
   printLine(`Space "${name}" added.`, opts)
 }
 
-export async function addSpace(
-  name: string,
-  opts: OutputOptions,
-  token?: string
-): Promise<void> {
+export async function addSpace(name: string, opts: OutputOptions, token?: string): Promise<void> {
   const defaultObjDir = getDefaultObjectsDir(name)
   const objectsDir = await promptLine('Objects directory', defaultObjDir)
 
@@ -139,7 +136,10 @@ export async function addSpace(
 
   await editWithTempFile(`cap-auth-${name}`, template, async (content) => {
     if (content === template || content.includes(`api_token = ""`)) {
-      throw new CapacitiesError(ExitCode.CONFIG, `No token entered. Re-run with --token cap-api-... to skip the editor.`)
+      throw new CapacitiesError(
+        ExitCode.CONFIG,
+        `No token entered. Re-run with --token cap-api-... to skip the editor.`
+      )
     }
     const { parse } = await import('smol-toml')
     const parsed = parse(content) as { auth_type: string; api_token?: string }
@@ -156,7 +156,10 @@ export async function editSpace(name: string, opts: OutputOptions): Promise<void
   const original = serializeSecrets(secrets)
 
   await editWithTempFile(`cap-edit-${name}`, original, async (updated) => {
-    if (updated === original) { printLine('No changes.', opts); return }
+    if (updated === original) {
+      printLine('No changes.', opts)
+      return
+    }
 
     const { parse } = await import('smol-toml')
     const parsed = parse(updated) as Parameters<typeof encryptSecrets>[1]
@@ -195,7 +198,9 @@ export async function keygenCommand(opts: OutputOptions): Promise<void> {
   }
   const { identity, recipient } = await generateAgeKeypair()
   fs.mkdirSync(path.dirname(keyFile), { recursive: true })
-  fs.writeFileSync(keyFile, `# created by capacities auth keygen\n# public key: ${recipient}\n${identity}\n`, { mode: 0o600 })
+  fs.writeFileSync(keyFile, `# created by capacities auth keygen\n# public key: ${recipient}\n${identity}\n`, {
+    mode: 0o600,
+  })
   printLine(`Age key generated: ${keyFile}`, opts)
   printLine(`Public recipient:  ${recipient}`, opts)
 }
@@ -203,31 +208,48 @@ export async function keygenCommand(opts: OutputOptions): Promise<void> {
 export function registerAuth(program: Command): void {
   const auth = program.command('auth').description('Manage space credentials')
 
-  auth.command('add <name>').description('Add a new space')
+  auth
+    .command('add <name>')
+    .description('Add a new space')
     .option('--token <token>', 'API token (skips editor)')
     .action(async (name: string, cmdOpts: { token?: string }) => {
       const opts = program.opts()
       await addSpace(name, opts, cmdOpts.token).catch(handleApiError)
     })
 
-  auth.command('edit <name>').description('Edit secrets for a space').action(async (name: string) => {
-    const opts = program.opts()
-    await editSpace(name, opts).catch(handleApiError)
-  })
+  auth
+    .command('edit <name>')
+    .description('Edit secrets for a space')
+    .action(async (name: string) => {
+      const opts = program.opts()
+      await editSpace(name, opts).catch(handleApiError)
+    })
 
-  auth.command('use <name>').description('Set active space').action((name: string) => {
-    useSpace(name, program.opts())
-  })
+  auth
+    .command('use <name>')
+    .description('Set active space')
+    .action((name: string) => {
+      useSpace(name, program.opts())
+    })
 
-  auth.command('list').description('List configured spaces').action(() => {
-    listSpaces(program.opts())
-  })
+  auth
+    .command('list')
+    .description('List configured spaces')
+    .action(() => {
+      listSpaces(program.opts())
+    })
 
-  auth.command('remove <name>').description('Remove a space').action((name: string) => {
-    removeSpace(name, program.opts())
-  })
+  auth
+    .command('remove <name>')
+    .description('Remove a space')
+    .action((name: string) => {
+      removeSpace(name, program.opts())
+    })
 
-  auth.command('keygen').description('Generate age keypair').action(async () => {
-    await keygenCommand(program.opts())
-  })
+  auth
+    .command('keygen')
+    .description('Generate age keypair')
+    .action(async () => {
+      await keygenCommand(program.opts())
+    })
 }

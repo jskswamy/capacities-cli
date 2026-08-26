@@ -36,9 +36,13 @@ export async function resolveSpace(flagSpace?: string): Promise<ResolvedSpace> {
 
   const secrets = await decryptSecrets(getSpaceFile(name))
   return {
-    name, objectsDir, authType: secrets.auth_type,
-    apiToken: secrets.api_token, clientId: secrets.client_id,
-    accessToken: secrets.access_token, refreshToken: secrets.refresh_token,
+    name,
+    objectsDir,
+    authType: secrets.auth_type,
+    apiToken: secrets.api_token,
+    clientId: secrets.client_id,
+    accessToken: secrets.access_token,
+    refreshToken: secrets.refresh_token,
     expiresAt: secrets.expires_at,
   }
 }

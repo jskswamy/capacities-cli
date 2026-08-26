@@ -32,7 +32,10 @@ describe('cache', () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-cache-'))
     process.env.CAPACITIES_CACHE_DIR = tmpDir
   })
-  afterEach(() => { fs.rmSync(tmpDir, { recursive: true }); delete process.env.CAPACITIES_CACHE_DIR })
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true })
+    delete process.env.CAPACITIES_CACHE_DIR
+  })
 
   it('returns null on miss', async () => {
     const { cacheGet, TTL } = await import('../../src/cache.ts')

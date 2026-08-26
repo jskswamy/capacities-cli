@@ -36,14 +36,17 @@ export function printJson(data: unknown, opts: OutputOptions): void {
 
 export function printTable(rows: Record<string, string>[], opts: OutputOptions): void {
   if (opts.quiet) return
-  if (rows.length === 0) { process.stdout.write('(no results)\n'); return }
+  if (rows.length === 0) {
+    process.stdout.write('(no results)\n')
+    return
+  }
   const keys = Object.keys(rows[0])
-  const widths = keys.map(k => Math.max(k.length, ...rows.map(r => String(r[k] ?? '').length)))
+  const widths = keys.map((k) => Math.max(k.length, ...rows.map((r) => String(r[k] ?? '').length)))
   const fmt = (vals: string[]) => vals.map((v, i) => v.padEnd(widths[i])).join('  ')
   const lines = [
     fmt(keys),
-    widths.map(w => '-'.repeat(w)).join('  '),
-    ...rows.map(r => fmt(keys.map(k => String(r[k] ?? '')))),
+    widths.map((w) => '-'.repeat(w)).join('  '),
+    ...rows.map((r) => fmt(keys.map((k) => String(r[k] ?? '')))),
   ]
   process.stdout.write(lines.join('\n') + '\n')
 }

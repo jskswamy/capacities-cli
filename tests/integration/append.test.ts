@@ -51,10 +51,11 @@ describe('capacities append', () => {
       })
     )
 
-    const { exitCode, stdout } = await runCLI(
-      ['append', OBJECT_ID, '## New Section\nContent here'],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-append-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode, stdout } = await runCLI(['append', OBJECT_ID, '## New Section\nContent here'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-append-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(0)
     expect(stdout).toContain(`Appended content to ${OBJECT_ID}`)
     expect(capturedBody).toMatchObject({
@@ -77,10 +78,11 @@ describe('capacities append', () => {
     const tmpFile = path.join(tmpDir, 'section.md')
     fs.writeFileSync(tmpFile, mdContent)
 
-    const { exitCode } = await runCLI(
-      ['append', OBJECT_ID, '--markdown', tmpFile],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-append-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode } = await runCLI(['append', OBJECT_ID, '--markdown', tmpFile], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-append-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(0)
     expect(capturedBody).toMatchObject({ id: OBJECT_ID, markdown: mdContent })
   })
@@ -94,32 +96,36 @@ describe('capacities append', () => {
       })
     )
 
-    const { exitCode } = await runCLI(
-      ['append', OBJECT_ID, 'Prepended content', '--position', 'start'],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-append-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode } = await runCLI(['append', OBJECT_ID, 'Prepended content', '--position', 'start'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-append-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(0)
     expect(capturedBody).toMatchObject({ position: { type: 'start' } })
   })
 
   it('exits 2 when neither content argument nor --markdown is provided', async () => {
-    const { exitCode } = await runCLI(
-      ['append', OBJECT_ID],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-append-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode } = await runCLI(['append', OBJECT_ID], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-append-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(2)
   })
 
   it('exits 5 on 429', async () => {
     server.use(
-      http.post('https://api.capacities.io/blocks/append', () =>
-        new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
+      http.post(
+        'https://api.capacities.io/blocks/append',
+        () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
       )
     )
-    const { exitCode, stderr } = await runCLI(
-      ['append', OBJECT_ID, 'content'],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-append-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode, stderr } = await runCLI(['append', OBJECT_ID, 'content'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-append-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(5)
     expect(stderr).toContain('Rate limit')
   })

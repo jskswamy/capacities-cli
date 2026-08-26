@@ -40,25 +40,36 @@ export type ResolvedSpace = {
   expiresAt?: number
 }
 
-function configHome(): string { return process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config') }
-function cacheHome(): string  { return process.env.XDG_CACHE_HOME  ?? path.join(os.homedir(), '.cache') }
-function getDataHome(): string { return process.env.XDG_DATA_HOME ?? path.join(os.homedir(), '.local', 'share') }
+function configHome(): string {
+  return process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config')
+}
+function cacheHome(): string {
+  return process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), '.cache')
+}
+function getDataHome(): string {
+  return process.env.XDG_DATA_HOME ?? path.join(os.homedir(), '.local', 'share')
+}
 
 export function getConfigPath(): string {
   return process.env.CAPACITIES_CONFIG ?? path.join(configHome(), 'capacities', 'config.toml')
 }
-function getSpacesDir(): string { return path.join(configHome(), 'capacities', 'spaces') }
-export function getSpaceFile(name: string): string { return path.join(getSpacesDir(), `${name}.age`) }
+function getSpacesDir(): string {
+  return path.join(configHome(), 'capacities', 'spaces')
+}
+// name/spaceName below come from this process's own CLI args and local config,
+// not a remote or API-supplied source — no trust boundary is crossed here.
+export function getSpaceFile(name: string): string {
+  return path.join(getSpacesDir(), `${name}.age`) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+}
 export function getAgeKeyFile(): string {
   return process.env.CAPACITIES_AGE_KEY_FILE ?? path.join(configHome(), 'age', 'capacities.txt')
 }
 export function getCacheDir(spaceName: string): string {
   const base = process.env.CAPACITIES_CACHE_DIR ?? path.join(cacheHome(), 'capacities')
-  return path.join(base, spaceName)
+  return path.join(base, spaceName) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
 }
 export function getDefaultObjectsDir(spaceName: string): string {
-  return process.env.CAPACITIES_OBJECTS_DIR
-    ?? path.join(getDataHome(), 'capacities', spaceName, 'objects')
+  return process.env.CAPACITIES_OBJECTS_DIR ?? path.join(getDataHome(), 'capacities', spaceName, 'objects') // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
 }
 
 export function readConfig(): Config {

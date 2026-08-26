@@ -43,9 +43,11 @@ Updated properties on 2c76fdbf-...
 ```
 
 `cap get` after update:
+
 ```
 [capacities:debug] cache miss object/2c76fdbf-....json
 ```
+
 → hits API fresh (not local cache). Still returns unchanged body.
 
 ## What we know
@@ -58,6 +60,7 @@ Updated properties on 2c76fdbf-...
 ## Hypothesis
 
 The `PATCH /object/markdown` endpoint accepts the request but silently ignores the body content. Possible causes:
+
 - Wrong request body format — the markdown may need to be wrapped in a specific JSON field (e.g. `{ "markdown": "..." }`) rather than sent as raw text
 - Wrong `Content-Type` header — API expects `application/json` but CLI may be sending `text/plain` or `multipart/form-data`
 - The endpoint may only accept structured property patches, not free-form markdown body updates

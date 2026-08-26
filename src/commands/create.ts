@@ -53,15 +53,20 @@ export async function runCreate(
   } else {
     const frontmatterLines: string[] = []
     if (opts.desc) frontmatterLines.push(`description: ${JSON.stringify(opts.desc)}`)
-    if (opts.tags) frontmatterLines.push(`tags: [${opts.tags.split(',').map(t => JSON.stringify(t.trim())).join(', ')}]`)
+    if (opts.tags)
+      frontmatterLines.push(
+        `tags: [${opts.tags
+          .split(',')
+          .map((t) => JSON.stringify(t.trim()))
+          .join(', ')}]`
+      )
     for (const f of opts.field ?? []) {
       const eq = f.indexOf('=')
       if (eq < 1) continue
       frontmatterLines.push(`${f.slice(0, eq)}: ${f.slice(eq + 1)}`)
     }
-    markdown = frontmatterLines.length > 0
-      ? `---\n${frontmatterLines.join('\n')}\n---\n`
-      : `---\ntitle: ${title}\n---\n`
+    markdown =
+      frontmatterLines.length > 0 ? `---\n${frontmatterLines.join('\n')}\n---\n` : `---\ntitle: ${title}\n---\n`
   }
 
   // ponytail: cast as any — SDK uses { structureId, markdown } but callers may pass
@@ -93,14 +98,31 @@ export function registerCreate(program: Command): void {
   program
     .command('create')
     .description('Create a new object')
-    .requiredOption('-t, --type <type>', 'object type or structureId (Organization, Personality, Blip, RootPage, or UUID)')
+    .requiredOption(
+      '-t, --type <type>',
+      'object type or structureId (Organization, Personality, Blip, RootPage, or UUID)'
+    )
     .option('--title <title>', 'object title')
     .option('-d, --desc <description>', 'description')
     .option('--tags <tags>', 'comma-separated tags')
-    .option('-f, --field <key=value>', 'custom field, repeatable (e.g. -f ring=Trial)', (v, acc: string[]) => [...acc, v], [])
+    .option(
+      '-f, --field <key=value>',
+      'custom field, repeatable (e.g. -f ring=Trial)',
+      (v, acc: string[]) => [...acc, v],
+      []
+    )
     .option('--markdown <path>', 'read full frontmatter+body from file path, or "-" for stdin')
-    .action(async (cmdOpts: { type: string; title?: string; desc?: string; tags?: string; field: string[]; markdown?: string }) => {
-      const globalOpts = program.opts()
-      await runCreate(cmdOpts.type, cmdOpts.title, { ...globalOpts, ...cmdOpts }).catch(handleApiError)
-    })
+    .action(
+      async (cmdOpts: {
+        type: string
+        title?: string
+        desc?: string
+        tags?: string
+        field: string[]
+        markdown?: string
+      }) => {
+        const globalOpts = program.opts()
+        await runCreate(cmdOpts.type, cmdOpts.title, { ...globalOpts, ...cmdOpts }).catch(handleApiError)
+      }
+    )
 }

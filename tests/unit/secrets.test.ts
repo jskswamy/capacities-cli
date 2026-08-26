@@ -21,15 +21,21 @@
  */
 
 // tests/unit/secrets.test.ts
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 
 describe('secrets', () => {
   let tmpDir: string
-  beforeEach(() => { tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-sec-')) })
-  afterEach(() => { fs.rmSync(tmpDir, { recursive: true }); delete process.env.CAPACITIES_AGE_KEY; delete process.env.CAPACITIES_AGE_KEY_FILE })
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-sec-'))
+  })
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true })
+    delete process.env.CAPACITIES_AGE_KEY
+    delete process.env.CAPACITIES_AGE_KEY_FILE
+  })
 
   it('decryptSecrets throws CONFIG error when file missing', async () => {
     process.env.CAPACITIES_AGE_KEY = 'fake'

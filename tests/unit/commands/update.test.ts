@@ -41,22 +41,22 @@ vi.mock('../../../src/client.ts', () => ({
 }))
 
 vi.mock('../../../src/commands/search.ts', async (importOriginal) => {
-  const actual = await importOriginal() as object
+  const actual = (await importOriginal()) as object
   return { ...actual, fetchStructures: mockFetchStructures }
 })
 
 const STRUCTURES = {
-  structures: [{
-    id: 'blip-struct',
-    title: 'Blip',
-    propertyDefinitions: [
-      { id: 'description', name: 'description', type: 'text' },
-      { id: 'q-uuid-001', name: 'Quadrant', type: 'label', labelSet: [
-        { id: 'tool-id', name: 'Tool' },
-      ]},
-      { id: 'p-uuid-002', name: 'Personalities', type: 'entity' },
-    ],
-  }],
+  structures: [
+    {
+      id: 'blip-struct',
+      title: 'Blip',
+      propertyDefinitions: [
+        { id: 'description', name: 'description', type: 'text' },
+        { id: 'q-uuid-001', name: 'Quadrant', type: 'label', labelSet: [{ id: 'tool-id', name: 'Tool' }] },
+        { id: 'p-uuid-002', name: 'Personalities', type: 'entity' },
+      ],
+    },
+  ],
 }
 
 describe('update command', () => {
@@ -92,10 +92,12 @@ describe('update command', () => {
     mockMarkdownGet.mockResolvedValue('---\ntype: Personality\ntitle: Updated\n---\n')
     const { runUpdate } = await import('../../../src/commands/update.ts')
     await runUpdate('obj-1', 'description', 'New desc', {})
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      id: 'obj-1',
-      properties: { description: { type: 'text', text: { value: 'New desc' } } },
-    }))
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'obj-1',
+        properties: { description: { type: 'text', text: { value: 'New desc' } } },
+      })
+    )
   })
 
   it('resolves label property name to UUID and sends label payload', async () => {
@@ -103,10 +105,12 @@ describe('update command', () => {
     mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
     const { runUpdate } = await import('../../../src/commands/update.ts')
     await runUpdate('obj-1', 'quadrant', 'Tool', {})
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      id: 'obj-1',
-      properties: { 'q-uuid-001': { type: 'label', label: [{ id: 'tool-id', name: 'Tool' }] } },
-    }))
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'obj-1',
+        properties: { 'q-uuid-001': { type: 'label', label: [{ id: 'tool-id', name: 'Tool' }] } },
+      })
+    )
   })
 
   it('throws CONFIG error when property is an entity type', async () => {
@@ -136,11 +140,7 @@ describe('update command', () => {
     fs.writeFileSync(mdPath, '# New body\n\nReplacement content.\n')
     const { runUpdate } = await import('../../../src/commands/update.ts')
     await runUpdate('obj-4', undefined, undefined, { body: mdPath })
-    expect(mockReplaceBody).toHaveBeenCalledWith(
-      expect.anything(),
-      'obj-4',
-      '# New body\n\nReplacement content.\n'
-    )
+    expect(mockReplaceBody).toHaveBeenCalledWith(expect.anything(), 'obj-4', '# New body\n\nReplacement content.\n')
     expect(mockUpdate).not.toHaveBeenCalled()
     expect(mockPatchMarkdown).not.toHaveBeenCalled()
   })

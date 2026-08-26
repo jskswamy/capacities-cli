@@ -31,10 +31,15 @@ const STRUCTURES = {
       title: 'Organization',
       propertyDefinitions: [
         { id: 'f46c81ae-0001-0000-0000-000000000001', name: 'Personalities', type: 'entity' },
-        { id: 'q-uuid-0002', name: 'Quadrant', type: 'label', labelSet: [
-          { id: 'tool-id', name: 'Tool' },
-          { id: 'tech-id', name: 'Technique' },
-        ]},
+        {
+          id: 'q-uuid-0002',
+          name: 'Quadrant',
+          type: 'label',
+          labelSet: [
+            { id: 'tool-id', name: 'Tool' },
+            { id: 'tech-id', name: 'Technique' },
+          ],
+        },
         { id: 'link-uuid-0003', name: 'Link', type: 'richText' },
         { id: 'score-uuid-0004', name: 'Score', type: 'number' },
         { id: 'active-uuid-0005', name: 'Active', type: 'boolean' },
@@ -93,9 +98,7 @@ describe('buildPropertyPayload', () => {
   })
 
   it('builds label payload with resolved options', () => {
-    const def = { id: 'q-uuid', name: 'Quadrant', type: 'label', labelSet: [
-      { id: 'tool-id', name: 'Tool' },
-    ]}
+    const def = { id: 'q-uuid', name: 'Quadrant', type: 'label', labelSet: [{ id: 'tool-id', name: 'Tool' }] }
     expect(buildPropertyPayload(def, ['tool'])).toEqual({
       type: 'label',
       label: [{ id: 'tool-id', name: 'Tool' }],
@@ -103,9 +106,7 @@ describe('buildPropertyPayload', () => {
   })
 
   it('throws NOT_FOUND for unknown label option', () => {
-    const def = { id: 'q-uuid', name: 'Quadrant', type: 'label', labelSet: [
-      { id: 'tool-id', name: 'Tool' },
-    ]}
+    const def = { id: 'q-uuid', name: 'Quadrant', type: 'label', labelSet: [{ id: 'tool-id', name: 'Tool' }] }
     expect(() => buildPropertyPayload(def, ['Adopt'])).toThrow('Unknown option')
   })
 

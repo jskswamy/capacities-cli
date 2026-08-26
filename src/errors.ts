@@ -22,16 +22,20 @@
 
 // src/errors.ts
 export const ExitCode = {
-  SUCCESS:    0,
+  SUCCESS: 0,
   UNEXPECTED: 1,
-  CONFIG:     2,
-  API:        3,
-  NOT_FOUND:  4,
+  CONFIG: 2,
+  API: 3,
+  NOT_FOUND: 4,
   RATE_LIMIT: 5,
 } as const
 
 export class CapacitiesError extends Error {
-  constructor(public readonly code: number, message: string, public readonly cause?: unknown) {
+  constructor(
+    public readonly code: number,
+    message: string,
+    public readonly cause?: unknown
+  ) {
     super(message)
     this.name = 'CapacitiesError'
   }

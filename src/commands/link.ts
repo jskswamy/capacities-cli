@@ -44,7 +44,10 @@ export async function runLink(
   const def = resolvePropertyDef(structures, propertyKey)
 
   if (def.type !== 'entity') {
-    throw new CapacitiesError(ExitCode.CONFIG, `"${propertyKey}" is a ${def.type} field — use \`cap update\` for scalar fields`)
+    throw new CapacitiesError(
+      ExitCode.CONFIG,
+      `"${propertyKey}" is a ${def.type} field — use \`cap update\` for scalar fields`
+    )
   }
 
   await client.object.update({

@@ -55,15 +55,16 @@ export async function runSaveFile(
     throw new CapacitiesError(ExitCode.CONFIG, `File not found: ${filePath}`)
   }
   const space = await resolveSpace(opts.space)
-  const collections = opts.collections?.split(',').map(s => s.trim()).filter(Boolean)
+  const collections = opts.collections
+    ?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
   const id = await uploadMedia(space, filePath, { title: opts.title, collections })
   printLine(id, opts)
 }
 
 export function registerSave(program: Command): void {
-  const save = program
-    .command('save')
-    .description('Save a URL or local file to Capacities')
+  const save = program.command('save').description('Save a URL or local file to Capacities')
 
   save
     .command('url <url>')

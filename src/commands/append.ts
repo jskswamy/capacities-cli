@@ -60,33 +60,35 @@ export function registerAppend(program: Command): void {
     .summary('Append markdown content to the body of an existing object')
     .description(
       'Append markdown content to the body of an existing object.\n\n' +
-      'Converts markdown to blocks and inserts them at the specified position\n' +
-      '(default: end of body). Use this to add sections, notes, or structured\n' +
-      'content to an existing object without affecting its properties.\n\n' +
-      'Content sources (pick one):\n\n' +
-      '  cap append <objectId> "## New Section\\nContent here"\n' +
-      '    Pass content inline as the second argument.\n\n' +
-      '  cap append <objectId> --markdown <file>\n' +
-      '    Read content from a file. Use "-" to read from stdin.\n\n' +
-      '  cat notes.md | cap append <objectId> --markdown -\n' +
-      '    Pipe content via stdin.\n\n' +
-      'NOTE: This appends — it does not replace existing body content.\n' +
-      'To replace the body instead, use `cap update <objectId> --body <file>`.\n' +
-      'To update frontmatter properties (title, ring, quadrant, etc.),\n' +
-      'use `cap update <objectId> --props <file>` or\n' +
-      '`cap update <objectId> <propertyKey> <value>`.'
+        'Converts markdown to blocks and inserts them at the specified position\n' +
+        '(default: end of body). Use this to add sections, notes, or structured\n' +
+        'content to an existing object without affecting its properties.\n\n' +
+        'Content sources (pick one):\n\n' +
+        '  cap append <objectId> "## New Section\\nContent here"\n' +
+        '    Pass content inline as the second argument.\n\n' +
+        '  cap append <objectId> --markdown <file>\n' +
+        '    Read content from a file. Use "-" to read from stdin.\n\n' +
+        '  cat notes.md | cap append <objectId> --markdown -\n' +
+        '    Pipe content via stdin.\n\n' +
+        'NOTE: This appends — it does not replace existing body content.\n' +
+        'To replace the body instead, use `cap update <objectId> --body <file>`.\n' +
+        'To update frontmatter properties (title, ring, quadrant, etc.),\n' +
+        'use `cap update <objectId> --props <file>` or\n' +
+        '`cap update <objectId> <propertyKey> <value>`.'
     )
     .option(
       '--markdown <path>',
       'read content from file (or "-" for stdin); takes precedence over inline content argument'
     )
-    .option(
-      '--position <pos>',
-      'insert position: end (default) or start',
-      'end'
+    .option('--position <pos>', 'insert position: end (default) or start', 'end')
+    .action(
+      async (
+        objectId: string,
+        contentArg: string | undefined,
+        cmdOpts: { markdown?: string; position?: 'end' | 'start' }
+      ) => {
+        const opts = { ...program.opts(), ...cmdOpts }
+        await runAppend(objectId, contentArg, opts).catch(handleApiError)
+      }
     )
-    .action(async (objectId: string, contentArg: string | undefined, cmdOpts: { markdown?: string; position?: 'end' | 'start' }) => {
-      const opts = { ...program.opts(), ...cmdOpts }
-      await runAppend(objectId, contentArg, opts).catch(handleApiError)
-    })
 }

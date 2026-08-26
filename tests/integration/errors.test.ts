@@ -38,8 +38,9 @@ const BASE_ENV = {
 describe('exit code routing', () => {
   it('exits 5 (rate-limit) on 429', async () => {
     server.use(
-      http.post('https://api.capacities.io/objects/search', () =>
-        new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
+      http.post(
+        'https://api.capacities.io/objects/search',
+        () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
       )
     )
     const { exitCode, stderr } = await runCLI(['search', 'x'], BASE_ENV)
@@ -48,31 +49,19 @@ describe('exit code routing', () => {
   })
 
   it('exits 2 (config) on 401', async () => {
-    server.use(
-      http.post('https://api.capacities.io/objects/search', () =>
-        new HttpResponse(null, { status: 401 })
-      )
-    )
+    server.use(http.post('https://api.capacities.io/objects/search', () => new HttpResponse(null, { status: 401 })))
     const { exitCode } = await runCLI(['search', 'x'], BASE_ENV)
     expect(exitCode).toBe(2)
   })
 
   it('exits 4 (not-found) on 404', async () => {
-    server.use(
-      http.post('https://api.capacities.io/objects/search', () =>
-        new HttpResponse(null, { status: 404 })
-      )
-    )
+    server.use(http.post('https://api.capacities.io/objects/search', () => new HttpResponse(null, { status: 404 })))
     const { exitCode } = await runCLI(['search', 'x'], BASE_ENV)
     expect(exitCode).toBe(4)
   })
 
   it('exits 3 (API error) on 500', async () => {
-    server.use(
-      http.post('https://api.capacities.io/objects/search', () =>
-        new HttpResponse(null, { status: 500 })
-      )
-    )
+    server.use(http.post('https://api.capacities.io/objects/search', () => new HttpResponse(null, { status: 500 })))
     const { exitCode } = await runCLI(['search', 'x'], BASE_ENV)
     expect(exitCode).toBe(3)
   })

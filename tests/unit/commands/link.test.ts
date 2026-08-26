@@ -37,19 +37,21 @@ vi.mock('../../../src/client.ts', () => ({
 }))
 
 vi.mock('../../../src/commands/search.ts', async (importOriginal) => {
-  const actual = await importOriginal() as object
+  const actual = (await importOriginal()) as object
   return { ...actual, fetchStructures: mockFetchStructures }
 })
 
 const STRUCTURES = {
-  structures: [{
-    id: 'org-struct',
-    title: 'Organization',
-    propertyDefinitions: [
-      { id: 'f46c81ae-0001-0000-0000-000000000001', name: 'Personalities', type: 'entity' },
-      { id: 'quadrant-uuid', name: 'Quadrant', type: 'label', labelSet: [{ id: 'tool-id', name: 'Tool' }] },
-    ],
-  }],
+  structures: [
+    {
+      id: 'org-struct',
+      title: 'Organization',
+      propertyDefinitions: [
+        { id: 'f46c81ae-0001-0000-0000-000000000001', name: 'Personalities', type: 'entity' },
+        { id: 'quadrant-uuid', name: 'Quadrant', type: 'label', labelSet: [{ id: 'tool-id', name: 'Tool' }] },
+      ],
+    },
+  ],
 }
 
 describe('link command', () => {
@@ -87,15 +89,17 @@ describe('link command', () => {
     mockMarkdownGet.mockResolvedValue('---\ntype: Organization\ntitle: Stanford\n---\n')
     const { runLink } = await import('../../../src/commands/link.ts')
     await runLink('org-1', 'personalities', ['p1', 'p2'], {})
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      id: 'org-1',
-      properties: {
-        'f46c81ae-0001-0000-0000-000000000001': {
-          type: 'entity',
-          entity: [{ id: 'p1' }, { id: 'p2' }],
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'org-1',
+        properties: {
+          'f46c81ae-0001-0000-0000-000000000001': {
+            type: 'entity',
+            entity: [{ id: 'p1' }, { id: 'p2' }],
+          },
         },
-      },
-    }))
+      })
+    )
   })
 
   it('throws CONFIG error when property is not an entity type', async () => {

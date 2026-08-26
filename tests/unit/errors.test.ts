@@ -22,7 +22,15 @@
 
 // tests/unit/errors.test.ts
 import { describe, it, expect } from 'vitest'
-import { CapacitiesError, ExitCode, ExitError, exit, handleApiError, toExitCode, formatError } from '../../src/errors.ts'
+import {
+  CapacitiesError,
+  ExitCode,
+  ExitError,
+  exit,
+  handleApiError,
+  toExitCode,
+  formatError,
+} from '../../src/errors.ts'
 
 describe('CapacitiesError', () => {
   it('stores code and message', () => {
@@ -75,38 +83,52 @@ describe('exit', () => {
 describe('handleApiError', () => {
   it('wraps non-Error as UNEXPECTED', () => {
     expect(() => handleApiError('string')).toThrow(CapacitiesError)
-    try { handleApiError('string') } catch (e) {
+    try {
+      handleApiError('string')
+    } catch (e) {
       expect((e as CapacitiesError).code).toBe(ExitCode.UNEXPECTED)
     }
   })
   it('throws RATE_LIMIT on 429', () => {
-    try { handleApiError(new Error('429 Too Many Requests')) } catch (e) {
+    try {
+      handleApiError(new Error('429 Too Many Requests'))
+    } catch (e) {
       expect((e as CapacitiesError).code).toBe(ExitCode.RATE_LIMIT)
       expect((e as CapacitiesError).message).toContain('Rate limit')
     }
   })
   it('includes Retry-After seconds when present', () => {
-    try { handleApiError(new Error('429 Retry-After: 30')) } catch (e) {
+    try {
+      handleApiError(new Error('429 Retry-After: 30'))
+    } catch (e) {
       expect((e as CapacitiesError).message).toContain('30s')
     }
   })
   it('throws CONFIG on 401', () => {
-    try { handleApiError(new Error('401 Unauthorized')) } catch (e) {
+    try {
+      handleApiError(new Error('401 Unauthorized'))
+    } catch (e) {
       expect((e as CapacitiesError).code).toBe(ExitCode.CONFIG)
     }
   })
   it('throws CONFIG on 403', () => {
-    try { handleApiError(new Error('403 Forbidden')) } catch (e) {
+    try {
+      handleApiError(new Error('403 Forbidden'))
+    } catch (e) {
       expect((e as CapacitiesError).code).toBe(ExitCode.CONFIG)
     }
   })
   it('throws NOT_FOUND on 404', () => {
-    try { handleApiError(new Error('404 Not Found')) } catch (e) {
+    try {
+      handleApiError(new Error('404 Not Found'))
+    } catch (e) {
       expect((e as CapacitiesError).code).toBe(ExitCode.NOT_FOUND)
     }
   })
   it('throws API for generic errors', () => {
-    try { handleApiError(new Error('500 Internal Server Error')) } catch (e) {
+    try {
+      handleApiError(new Error('500 Internal Server Error'))
+    } catch (e) {
       expect((e as CapacitiesError).code).toBe(ExitCode.API)
       expect((e as CapacitiesError).message).toContain('API error')
     }

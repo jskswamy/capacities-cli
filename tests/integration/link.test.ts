@@ -28,15 +28,19 @@ import * as os from 'os'
 import * as path from 'path'
 
 const OBJECT_FIXTURE = { id: 'org-1', title: 'Stanford', objectType: 'Organization' }
-const MARKDOWN_FIXTURE = { id: 'org-1', structureId: 'RootEntity', markdown: '---\ntype: Organization\ntitle: Stanford\n---\n' }
+const MARKDOWN_FIXTURE = {
+  id: 'org-1',
+  structureId: 'RootEntity',
+  markdown: '---\ntype: Organization\ntitle: Stanford\n---\n',
+}
 const STRUCTURES_FIXTURE = {
-  structures: [{
-    id: 'org-struct',
-    title: 'Organization',
-    propertyDefinitions: [
-      { id: 'f46c81ae-0001-0000-0000-000000000001', name: 'Personalities', type: 'entity' },
-    ],
-  }],
+  structures: [
+    {
+      id: 'org-struct',
+      title: 'Organization',
+      propertyDefinitions: [{ id: 'f46c81ae-0001-0000-0000-000000000001', name: 'Personalities', type: 'entity' }],
+    },
+  ],
 }
 
 let tmpDir: string
@@ -55,16 +59,12 @@ describe('capacities link', () => {
   it('PATCH /object sends entity payload with resolved UUID key', async () => {
     let capturedBody: unknown
     server.use(
-      http.get('https://api.capacities.io/space/structures', () =>
-        HttpResponse.json(STRUCTURES_FIXTURE)
-      ),
+      http.get('https://api.capacities.io/space/structures', () => HttpResponse.json(STRUCTURES_FIXTURE)),
       http.patch('https://api.capacities.io/object', async ({ request }) => {
         capturedBody = await request.json()
         return HttpResponse.json(OBJECT_FIXTURE)
       }),
-      http.get('https://api.capacities.io/object/markdown', () =>
-        HttpResponse.json(MARKDOWN_FIXTURE)
-      )
+      http.get('https://api.capacities.io/object/markdown', () => HttpResponse.json(MARKDOWN_FIXTURE))
     )
 
     const { exitCode, stdout } = await runCLI(['link', 'org-1', 'personalities', 'p1', 'p2'], {
@@ -88,11 +88,10 @@ describe('capacities link', () => {
 
   it('exits 5 on 429', async () => {
     server.use(
-      http.get('https://api.capacities.io/space/structures', () =>
-        HttpResponse.json(STRUCTURES_FIXTURE)
-      ),
-      http.patch('https://api.capacities.io/object', () =>
-        new HttpResponse(null, { status: 429, headers: { 'Retry-After': '60' } })
+      http.get('https://api.capacities.io/space/structures', () => HttpResponse.json(STRUCTURES_FIXTURE)),
+      http.patch(
+        'https://api.capacities.io/object',
+        () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': '60' } })
       )
     )
     const { exitCode, stderr } = await runCLI(['link', 'org-1', 'personalities', 'p1'], {

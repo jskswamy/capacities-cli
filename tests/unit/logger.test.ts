@@ -25,8 +25,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 describe('logger', () => {
   let spy: ReturnType<typeof vi.spyOn>
-  beforeEach(() => { spy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true) })
-  afterEach(() => { spy.mockRestore(); delete process.env.NO_COLOR; delete process.env.CAPACITIES_LOG_LEVEL })
+  beforeEach(() => {
+    spy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
+  })
+  afterEach(() => {
+    spy.mockRestore()
+    delete process.env.NO_COLOR
+    delete process.env.CAPACITIES_LOG_LEVEL
+  })
 
   it('writes warn to stderr with NO_COLOR prefix', async () => {
     process.env.NO_COLOR = '1'

@@ -25,7 +25,11 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import * as fs from 'fs'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
-const OBJECT_FIXTURE = { id: 'new-org-id', structureId: '4ba6e5c6-3f31-45f2-93a0-27a8b2d91551', markdown: '---\ntype: Organization\ntitle: Bell Labs\n---\n\n# Bell Labs\n' }
+const OBJECT_FIXTURE = {
+  id: 'new-org-id',
+  structureId: '4ba6e5c6-3f31-45f2-93a0-27a8b2d91551',
+  markdown: '---\ntype: Organization\ntitle: Bell Labs\n---\n\n# Bell Labs\n',
+}
 const MARKDOWN_FIXTURE = '---\ntype: Organization\ntitle: Bell Labs\n---\n\n# Bell Labs\n'
 
 // A valid structureId UUID for the integration test (custom structure)
@@ -44,9 +48,7 @@ describe('capacities create', () => {
       http.patch('https://api.capacities.io/object/markdown', async () => {
         return HttpResponse.json({})
       }),
-      http.get('https://api.capacities.io/object/markdown', () =>
-        HttpResponse.text(MARKDOWN_FIXTURE)
-      )
+      http.get('https://api.capacities.io/object/markdown', () => HttpResponse.text(MARKDOWN_FIXTURE))
     )
 
     const { exitCode, stdout } = await runCLI(['create', '--type', STRUCT_ID, '--title', 'Bell Labs'], {
@@ -60,8 +62,9 @@ describe('capacities create', () => {
 
   it('exits 5 on 429', async () => {
     server.use(
-      http.post('https://api.capacities.io/object/markdown', () =>
-        new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
+      http.post(
+        'https://api.capacities.io/object/markdown',
+        () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
       )
     )
     // Use a valid built-in structureId (RootPage) so SDK validation passes
@@ -82,24 +85,24 @@ describe('capacities create', () => {
       http.post('https://api.capacities.io/object/markdown', async () => {
         return HttpResponse.json({ id: 'file-md-id', structureId: 'RootPage', markdown: mdContent })
       }),
-      http.get('https://api.capacities.io/object/markdown', () =>
-        HttpResponse.text(mdContent)
-      )
+      http.get('https://api.capacities.io/object/markdown', () => HttpResponse.text(mdContent))
     )
-    const { exitCode, stdout } = await runCLI(
-      ['create', '--type', 'RootPage', '--markdown', tmpFile],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-create-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode, stdout } = await runCLI(['create', '--type', 'RootPage', '--markdown', tmpFile], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-create-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     fs.unlinkSync(tmpFile)
     expect(exitCode).toBe(0)
     expect(stdout).toContain('file-md-id')
   })
 
   it('exits 2 when neither --title nor --markdown is provided', async () => {
-    const { exitCode } = await runCLI(
-      ['create', '--type', 'RootPage'],
-      { CAPACITIES_TOKEN: 'cap-api-test', CAPACITIES_CONFIG: '/tmp/cap-create-test.toml', CAPACITIES_SPACE: 'personal' }
-    )
+    const { exitCode } = await runCLI(['create', '--type', 'RootPage'], {
+      CAPACITIES_TOKEN: 'cap-api-test',
+      CAPACITIES_CONFIG: '/tmp/cap-create-test.toml',
+      CAPACITIES_SPACE: 'personal',
+    })
     expect(exitCode).toBe(2)
   })
 })

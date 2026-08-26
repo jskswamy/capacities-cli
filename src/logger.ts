@@ -40,7 +40,7 @@ function log(msgLevel: Level, color: (s: string) => string, msg: string): void {
 
 export const logger = {
   debug: (msg: string) => log('debug', chalk.gray, msg),
-  info:  (msg: string) => log('info',  chalk.blue, msg),
-  warn:  (msg: string) => log('warn',  chalk.yellow, msg),
+  info: (msg: string) => log('info', chalk.blue, msg),
+  warn: (msg: string) => log('warn', chalk.yellow, msg),
   error: (msg: string) => log('error', chalk.red, msg),
 }

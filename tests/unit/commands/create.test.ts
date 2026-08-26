@@ -55,7 +55,10 @@ describe('create command', () => {
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
     fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\nobjects_dir = "' + path.join(tmpDir, 'objects') + '"\n')
+    fs.writeFileSync(
+      path.join(tmpDir, 'capacities', 'config.toml'),
+      'active_space = "personal"\n[spaces.personal]\nobjects_dir = "' + path.join(tmpDir, 'objects') + '"\n'
+    )
   })
 
   afterEach(() => {
@@ -76,7 +79,7 @@ describe('create command', () => {
     expect(mockPatchMarkdown).toHaveBeenCalledWith(
       expect.anything(),
       'new-org',
-      expect.stringContaining('title: Bell Labs'),
+      expect.stringContaining('title: Bell Labs')
     )
   })
 
@@ -114,9 +117,11 @@ describe('create command', () => {
     fs.writeFileSync(tmpFile, '---\ntitle: From File\n---\nBody here')
     const { runCreate } = await import('../../../src/commands/create.ts')
     await runCreate('Page', undefined, { markdown: tmpFile })
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      markdown: '---\ntitle: From File\n---\nBody here',
-    }))
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        markdown: '---\ntitle: From File\n---\nBody here',
+      })
+    )
     expect(mockPatchMarkdown).not.toHaveBeenCalled()
   })
 
@@ -125,19 +130,19 @@ describe('create command', () => {
     mockMarkdownGet.mockResolvedValue('---\ntitle: From Stdin\n---\n')
     const { Readable } = await import('stream')
     const stdinContent = '---\ntitle: From Stdin\n---\nStdin body'
-    vi.spyOn(process, 'stdin', 'get').mockReturnValue(
-      Readable.from([Buffer.from(stdinContent)]) as any
-    )
+    vi.spyOn(process, 'stdin', 'get').mockReturnValue(Readable.from([Buffer.from(stdinContent)]) as any)
     const { runCreate } = await import('../../../src/commands/create.ts')
     await runCreate('Page', undefined, { markdown: '-' })
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      markdown: stdinContent,
-    }))
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        markdown: stdinContent,
+      })
+    )
   })
 
   it('throws CONFIG error when neither --title nor --markdown is set', async () => {
     const { runCreate } = await import('../../../src/commands/create.ts')
-    const { CapacitiesError, ExitCode } = await import('../../../src/errors.ts')
+    const { ExitCode } = await import('../../../src/errors.ts')
     await expect(runCreate('Page', undefined, {})).rejects.toMatchObject({
       code: ExitCode.CONFIG,
     })

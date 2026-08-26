@@ -36,10 +36,7 @@ describe('clear-cache command', () => {
     process.env.CAPACITIES_SPACE = 'personal'
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-    fs.writeFileSync(
-      path.join(tmpDir, 'capacities', 'config.toml'),
-      'active_space = "personal"\n[spaces.personal]\n'
-    )
+    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\n')
   })
 
   afterEach(() => {

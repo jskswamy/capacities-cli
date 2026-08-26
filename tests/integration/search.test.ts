@@ -28,9 +28,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 const SEARCH_FIXTURE = {
-  results: [
-    { id: 'abc-123', structureId: 'RootPage', title: 'Stanford University' },
-  ],
+  results: [{ id: 'abc-123', structureId: 'RootPage', title: 'Stanford University' }],
 }
 
 const STRUCTURES_FIXTURE = { structures: [] }
@@ -72,8 +70,9 @@ describe('capacities search', () => {
 
   it('exits 5 on 429', async () => {
     server.use(
-      http.post('https://api.capacities.io/objects/search', () =>
-        new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
+      http.post(
+        'https://api.capacities.io/objects/search',
+        () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
       )
     )
     const { exitCode, stderr } = await runCLI(['search', 'test'], {

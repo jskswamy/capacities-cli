@@ -36,22 +36,12 @@ const BLIP_STRUCTURE = {
     {
       name: 'ring',
       type: 'label',
-      labelSet: [
-        { name: 'Adopt' },
-        { name: 'Trial' },
-        { name: 'Assess' },
-        { name: 'Hold' },
-      ],
+      labelSet: [{ name: 'Adopt' }, { name: 'Trial' }, { name: 'Assess' }, { name: 'Hold' }],
     },
     {
       name: 'quadrant',
       type: 'label',
-      labelSet: [
-        { name: 'Tool' },
-        { name: 'Technique' },
-        { name: 'Platform' },
-        { name: 'Languages & Frameworks' },
-      ],
+      labelSet: [{ name: 'Tool' }, { name: 'Technique' }, { name: 'Platform' }, { name: 'Languages & Frameworks' }],
     },
   ],
 }
@@ -69,9 +59,7 @@ vi.mock('@capacities/api', () => ({
 
 // Helper: create a mock stdin from a string
 function mockStdin(content: string): void {
-  vi.spyOn(process, 'stdin', 'get').mockReturnValue(
-    Readable.from([Buffer.from(content)]) as any
-  )
+  vi.spyOn(process, 'stdin', 'get').mockReturnValue(Readable.from([Buffer.from(content)]) as any)
 }
 
 describe('validate command', () => {
@@ -86,17 +74,16 @@ describe('validate command', () => {
     process.env.CAPACITIES_TOKEN = 'cap-api-test'
     process.env.CAPACITIES_SPACE = 'personal'
     fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-    fs.writeFileSync(
-      path.join(tmpDir, 'capacities', 'config.toml'),
-      'active_space = "personal"\n[spaces.personal]\n'
-    )
+    fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\n')
     stdoutOutput = []
     stderrOutput = []
     vi.spyOn(process.stdout, 'write').mockImplementation((chunk: unknown) => {
-      stdoutOutput.push(String(chunk)); return true
+      stdoutOutput.push(String(chunk))
+      return true
     })
     vi.spyOn(process.stderr, 'write').mockImplementation((chunk: unknown) => {
-      stderrOutput.push(String(chunk)); return true
+      stderrOutput.push(String(chunk))
+      return true
     })
     mockStructures.mockResolvedValue([BLIP_STRUCTURE])
   })

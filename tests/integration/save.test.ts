@@ -51,8 +51,9 @@ describe('capacities save url', () => {
 
   it('exits 5 on rate limit (429)', async () => {
     server.use(
-      http.post('https://api.capacities.io/object/url', () =>
-        new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
+      http.post(
+        'https://api.capacities.io/object/url',
+        () => new HttpResponse(null, { status: 429, headers: { 'Retry-After': '30' } })
       )
     )
     const { exitCode, stderr } = await runCLI(['save', 'url', 'https://example.com'], ENV)
@@ -69,19 +70,17 @@ describe('capacities save file', () => {
     fs.writeFileSync(tmpFile, 'PDF content for upload test')
   })
 
-  afterAll(() => { fs.unlinkSync(tmpFile) })
+  afterAll(() => {
+    fs.unlinkSync(tmpFile)
+  })
 
   it('uploads a file through init→PUT→complete and prints the ID', async () => {
     server.use(
-      http.post('https://api.capacities.io/object/media/upload', () =>
-        HttpResponse.json({ id: 'upload-session-id' })
-      ),
-      http.put('https://api.capacities.io/object/media/upload/part', () =>
-        new HttpResponse(null, { status: 200 })
-      ),
+      http.post('https://api.capacities.io/object/media/upload', () => HttpResponse.json({ id: 'upload-session-id' })),
+      http.put('https://api.capacities.io/object/media/upload/part', () => new HttpResponse(null, { status: 200 })),
       http.post('https://api.capacities.io/object/media/upload/complete', () =>
         HttpResponse.json({ id: 'media-obj-id' })
-      ),
+      )
     )
     const { exitCode, stdout } = await runCLI(['save', 'file', tmpFile], ENV)
     expect(exitCode).toBe(0)

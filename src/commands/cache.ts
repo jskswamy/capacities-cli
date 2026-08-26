@@ -38,9 +38,9 @@ export function registerClearCache(program: Command): void {
     .summary('Delete the local cache for a space')
     .description(
       'Delete the local cache for a space (structures, cached objects, search results).\n\n' +
-      'Structures are cached for 24h with no automatic invalidation, so a type or\n' +
-      'property renamed in the Capacities app (e.g. Research -> Evergreen Note)\n' +
-      'stays stale locally until this is run or the cache expires on its own.'
+        'Structures are cached for 24h with no automatic invalidation, so a type or\n' +
+        'property renamed in the Capacities app (e.g. Research -> Evergreen Note)\n' +
+        'stays stale locally until this is run or the cache expires on its own.'
     )
     .action(() => {
       runClearCache(program.opts())

@@ -35,29 +35,32 @@ type StructureEntry = { id?: string; title?: string; propertyDefinitions?: Prope
 type StructuresResp = { structures: StructureEntry[] }
 
 export function resolvePropertyDef(structures: StructuresResp, propName: string): PropertyDef {
-  const allDefs = structures.structures.flatMap(s => s.propertyDefinitions ?? [])
+  const allDefs = structures.structures.flatMap((s) => s.propertyDefinitions ?? [])
 
   // 1. Exact id match (built-ins like "description", UUID passthrough)
-  const byId = allDefs.find(d => d.id === propName)
+  const byId = allDefs.find((d) => d.id === propName)
   if (byId) return byId
 
   // 2. Case-insensitive name match
   const lower = propName.toLowerCase()
-  const byName = allDefs.filter(d => d.name.toLowerCase() === lower)
+  const byName = allDefs.filter((d) => d.name.toLowerCase() === lower)
   if (byName.length === 1) return byName[0]
   if (byName.length > 1) {
-    const list = byName.map(d => `${d.name} (${d.id})`).join(', ')
-    throw new CapacitiesError(ExitCode.API, `Ambiguous property "${propName}" — found: ${list}. Pass the UUID directly.`)
+    const list = byName.map((d) => `${d.name} (${d.id})`).join(', ')
+    throw new CapacitiesError(
+      ExitCode.API,
+      `Ambiguous property "${propName}" — found: ${list}. Pass the UUID directly.`
+    )
   }
 
-  const available = [...new Set(allDefs.map(d => d.name))].join(', ')
+  const available = [...new Set(allDefs.map((d) => d.name))].join(', ')
   throw new CapacitiesError(ExitCode.NOT_FOUND, `Unknown property "${propName}". Available: ${available}`)
 }
 
 export function buildPropertyPayload(def: PropertyDef, values: string[]): object {
   switch (def.type) {
     case 'entity':
-      return { type: 'entity', entity: values.map(id => ({ id })) }
+      return { type: 'entity', entity: values.map((id) => ({ id })) }
     case 'label':
       return { type: 'label', label: resolveOptions(def, values) }
     case 'richText':
@@ -80,12 +83,15 @@ export function buildPropertyPayload(def: PropertyDef, values: string[]): object
 
 function resolveOptions(def: PropertyDef, names: string[]): Array<{ id: string; name: string }> {
   const labelSet = def.labelSet ?? []
-  return names.map(name => {
+  return names.map((name) => {
     const lower = name.toLowerCase()
-    const opt = labelSet.find(o => o.name.toLowerCase() === lower)
+    const opt = labelSet.find((o) => o.name.toLowerCase() === lower)
     if (!opt) {
-      const valid = labelSet.map(o => o.name).join(', ')
-      throw new CapacitiesError(ExitCode.NOT_FOUND, `Unknown option "${name}" for "${def.name}". Valid options: ${valid}`)
+      const valid = labelSet.map((o) => o.name).join(', ')
+      throw new CapacitiesError(
+        ExitCode.NOT_FOUND,
+        `Unknown option "${name}" for "${def.name}". Valid options: ${valid}`
+      )
     }
     return opt
   })

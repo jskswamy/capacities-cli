@@ -55,7 +55,10 @@ export async function runUpdate(
     const structures = await fetchStructures(space)
     const def = resolvePropertyDef(structures, propertyKey)
     if (def.type === 'entity') {
-      throw new CapacitiesError(ExitCode.CONFIG, `"${propertyKey}" is an entity field — use \`cap link\` <id> ${propertyKey} <target-ids>`)
+      throw new CapacitiesError(
+        ExitCode.CONFIG,
+        `"${propertyKey}" is an entity field — use \`cap link\` <id> ${propertyKey} <target-ids>`
+      )
     }
     await client.object.update({
       id: objectId,
@@ -83,23 +86,23 @@ export function registerUpdate(program: Command): void {
     .summary('Update a scalar property, frontmatter properties, or the body of an object')
     .description(
       'Update a scalar property, frontmatter properties, or the body of an object.\n\n' +
-      'Three modes:\n\n' +
-      '  cap update <objectId> <propertyKey> <value>\n' +
-      '    Update a single named property (e.g. description, ring, quadrant).\n' +
-      '    Resolves property names and label values from the space structures.\n' +
-      '    Use `cap types` to list available types and their property names.\n\n' +
-      '  cap update <objectId> --props <file>\n' +
-      '    Read YAML frontmatter from <file> and apply each key as a property\n' +
-      '    update via PATCH /object/markdown. Only frontmatter keys are applied;\n' +
-      '    body content after the closing --- is ignored by the API.\n' +
-      '    Pass "-" to read from stdin.\n\n' +
-      '  cap update <objectId> --body <file>\n' +
-      '    Replace the object body with <file>. The API has no replace endpoint,\n' +
-      '    so this appends the new content first and only then deletes the old\n' +
-      '    blocks — a failure partway through leaves duplicate content, never\n' +
-      '    lost content, and the error lists which old blocks still need removing.\n' +
-      '    Pass "-" to read from stdin.\n\n' +
-      'To append content without replacing, use `cap append <objectId>` instead.'
+        'Three modes:\n\n' +
+        '  cap update <objectId> <propertyKey> <value>\n' +
+        '    Update a single named property (e.g. description, ring, quadrant).\n' +
+        '    Resolves property names and label values from the space structures.\n' +
+        '    Use `cap types` to list available types and their property names.\n\n' +
+        '  cap update <objectId> --props <file>\n' +
+        '    Read YAML frontmatter from <file> and apply each key as a property\n' +
+        '    update via PATCH /object/markdown. Only frontmatter keys are applied;\n' +
+        '    body content after the closing --- is ignored by the API.\n' +
+        '    Pass "-" to read from stdin.\n\n' +
+        '  cap update <objectId> --body <file>\n' +
+        '    Replace the object body with <file>. The API has no replace endpoint,\n' +
+        '    so this appends the new content first and only then deletes the old\n' +
+        '    blocks — a failure partway through leaves duplicate content, never\n' +
+        '    lost content, and the error lists which old blocks still need removing.\n' +
+        '    Pass "-" to read from stdin.\n\n' +
+        'To append content without replacing, use `cap append <objectId>` instead.'
     )
     .option(
       '--props <path>',
@@ -109,8 +112,15 @@ export function registerUpdate(program: Command): void {
       '--body <path>',
       'replace body content from file (or "-" for stdin); appends new content then removes old blocks (not atomic — see description)'
     )
-    .action(async (objectId: string, propertyKey: string | undefined, value: string | undefined, cmdOpts: { props?: string; body?: string }) => {
-      const opts = { ...program.opts(), ...cmdOpts }
-      await runUpdate(objectId, propertyKey, value, opts).catch(handleApiError)
-    })
+    .action(
+      async (
+        objectId: string,
+        propertyKey: string | undefined,
+        value: string | undefined,
+        cmdOpts: { props?: string; body?: string }
+      ) => {
+        const opts = { ...program.opts(), ...cmdOpts }
+        await runUpdate(objectId, propertyKey, value, opts).catch(handleApiError)
+      }
+    )
 }

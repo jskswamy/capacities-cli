@@ -34,7 +34,9 @@ const WEB_BASE = 'https://app.capacities.io'
 
 async function fetchSpaceId(space: ResolvedSpace): Promise<string> {
   const resp = await fetchWithCache<{ id: string; title: string }>(
-    space.name, 'space.json', TTL.STRUCTURES,
+    space.name,
+    'space.json',
+    TTL.STRUCTURES,
     () => createClient(space).space.get() as Promise<{ id: string; title: string }>
   )
   return resp.id
@@ -54,10 +56,7 @@ function launchUrl(url: string): void {
   }
 }
 
-export async function runOpen(
-  objectId: string,
-  opts: CommandOptions & { print?: boolean }
-): Promise<void> {
+export async function runOpen(objectId: string, opts: CommandOptions & { print?: boolean }): Promise<void> {
   const space = await resolveSpace(opts.space)
   const spaceId = await fetchSpaceId(space)
   const url = `${WEB_BASE}/${spaceId}/${objectId}`

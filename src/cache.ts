@@ -28,20 +28,25 @@ import { getCacheDir } from './config.ts'
 import { logger } from './logger.ts'
 
 export const TTL = {
-  SEARCH:     10 * 60 * 1000,
-  OBJECT:     60 * 60 * 1000,
+  SEARCH: 10 * 60 * 1000,
+  OBJECT: 60 * 60 * 1000,
   STRUCTURES: 24 * 60 * 60 * 1000,
 } as const
 
 type CacheEntry<T> = { fetchedAt: string; data: T }
 
 function cacheFile(spaceName: string, key: string): string {
-  return path.join(getCacheDir(spaceName), key)
+  // spaceName/key come from this process's own CLI args and config, not a remote
+  // or API-supplied source — no trust boundary is crossed here.
+  return path.join(getCacheDir(spaceName), key) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
 }
 
 export function cacheGet<T>(spaceName: string, key: string, ttlMs: number): T | null {
   const file = cacheFile(spaceName, key)
-  if (!fs.existsSync(file)) { logger.debug(`cache miss ${key}`); return null }
+  if (!fs.existsSync(file)) {
+    logger.debug(`cache miss ${key}`)
+    return null
+  }
   const entry: CacheEntry<T> = JSON.parse(fs.readFileSync(file, 'utf8'))
   if (Date.now() - new Date(entry.fetchedAt).getTime() > ttlMs) {
     logger.debug(`cache expired ${key}`)
@@ -69,7 +74,11 @@ export function cacheDeleteSpace(spaceName: string): void {
 }
 
 export function queryHash(query: string, type?: string): string {
-  return crypto.createHash('sha256').update(`${query}:${type ?? ''}`).digest('hex').slice(0, 16)
+  return crypto
+    .createHash('sha256')
+    .update(`${query}:${type ?? ''}`)
+    .digest('hex')
+    .slice(0, 16)
 }
 
 export async function fetchWithCache<T>(

@@ -43,10 +43,7 @@ function makeEnv(tmpDir: string) {
   process.env.CAPACITIES_TOKEN = 'cap-api-test'
   process.env.CAPACITIES_SPACE = 'personal'
   fs.mkdirSync(path.join(tmpDir, 'capacities'), { recursive: true })
-  fs.writeFileSync(
-    path.join(tmpDir, 'capacities', 'config.toml'),
-    'active_space = "personal"\n[spaces.personal]\n'
-  )
+  fs.writeFileSync(path.join(tmpDir, 'capacities', 'config.toml'), 'active_space = "personal"\n[spaces.personal]\n')
 }
 
 function cleanEnv() {
@@ -85,12 +82,14 @@ describe('runSaveUrl', () => {
     mockCreateFromUrl.mockResolvedValue({ id: 'url-obj-id' })
     const { runSaveUrl } = await import('../../../src/commands/save.ts')
     await runSaveUrl('https://example.com', { title: 'My Link', desc: 'A summary' })
-    expect(mockCreateFromUrl).toHaveBeenCalledWith(expect.objectContaining({
-      properties: expect.objectContaining({
-        title: { type: 'title', title: { value: 'My Link' } },
-        description: { type: 'text', text: { value: 'A summary' } },
-      }),
-    }))
+    expect(mockCreateFromUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          title: { type: 'title', title: { value: 'My Link' } },
+          description: { type: 'text', text: { value: 'A summary' } },
+        }),
+      })
+    )
   })
 
   it('passes --markdown as inline notes', async () => {
@@ -122,8 +121,8 @@ describe('runSaveFile', () => {
 
   it('calls init → PUT → complete in order and prints the ID', async () => {
     mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'upload-id' }) })  // init
-      .mockResolvedValueOnce({ ok: true })                                              // PUT
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'upload-id' }) }) // init
+      .mockResolvedValueOnce({ ok: true }) // PUT
       .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'media-obj-id' }) }) // complete
     const outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     const { runSaveFile } = await import('../../../src/commands/save.ts')
@@ -138,8 +137,8 @@ describe('runSaveFile', () => {
   it('calls abort when PUT fails', async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'upload-id' }) }) // init
-      .mockResolvedValueOnce({ ok: false, status: 500 })                             // PUT fails
-      .mockResolvedValueOnce({ ok: true })                                            // abort
+      .mockResolvedValueOnce({ ok: false, status: 500 }) // PUT fails
+      .mockResolvedValueOnce({ ok: true }) // abort
     const { runSaveFile } = await import('../../../src/commands/save.ts')
     await expect(runSaveFile(testFile, {})).rejects.toThrow()
     expect(mockFetch.mock.calls[2][0]).toContain('/object/media/upload/abort')

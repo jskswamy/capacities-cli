@@ -152,11 +152,11 @@ echo "$frontmatter" | capacities validate --type Blip \
 
 Every read is cached locally to avoid redundant API calls:
 
-| Command | Cache TTL | Cache key |
-|---|---|---|
-| `search` | 10 minutes | query + type |
-| `get` | 1 hour | object ID |
-| structure list (internal) | 24 hours | per space |
+| Command                   | Cache TTL  | Cache key    |
+| ------------------------- | ---------- | ------------ |
+| `search`                  | 10 minutes | query + type |
+| `get`                     | 1 hour     | object ID    |
+| structure list (internal) | 24 hours   | per space    |
 
 Cache is stored under `~/.cache/capacities/<space>/`. After mutations (`link`, `create`, `update`, `append`) the affected object's cache entry is busted automatically. The structure list (object types and their properties) is **not** — it only expires on its own after 24h, so a type or property renamed in the Capacities app (e.g. `Research` → `Evergreen Note`) stays stale locally until then.
 
@@ -213,28 +213,28 @@ No secrets in `config.toml` — safe to commit to a dotfiles repo.
 
 ## Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `CAPACITIES_CONFIG` | override config file path |
-| `CAPACITIES_SPACE` | override active space |
-| `CAPACITIES_TOKEN` | plaintext API token (for CI without age) |
-| `CAPACITIES_AGE_KEY_FILE` | path to age private key (default: `~/.age/key.txt`) |
-| `CAPACITIES_AGE_KEY` | inline age private key (for CI secrets injection) |
-| `CAPACITIES_OBJECTS_DIR` | override write-through mirror directory |
-| `CAPACITIES_CACHE_DIR` | override cache root |
-| `CAPACITIES_LOG_LEVEL` | `debug\|info\|warn\|error\|silent` (default: `warn`) |
-| `NO_COLOR` | disable ANSI colours |
+| Variable                  | Purpose                                              |
+| ------------------------- | ---------------------------------------------------- |
+| `CAPACITIES_CONFIG`       | override config file path                            |
+| `CAPACITIES_SPACE`        | override active space                                |
+| `CAPACITIES_TOKEN`        | plaintext API token (for CI without age)             |
+| `CAPACITIES_AGE_KEY_FILE` | path to age private key (default: `~/.age/key.txt`)  |
+| `CAPACITIES_AGE_KEY`      | inline age private key (for CI secrets injection)    |
+| `CAPACITIES_OBJECTS_DIR`  | override write-through mirror directory              |
+| `CAPACITIES_CACHE_DIR`    | override cache root                                  |
+| `CAPACITIES_LOG_LEVEL`    | `debug\|info\|warn\|error\|silent` (default: `warn`) |
+| `NO_COLOR`                | disable ANSI colours                                 |
 
 ## Exit Codes
 
-| Code | Meaning |
-|---|---|
-| 0 | Success |
-| 1 | Unexpected error |
-| 2 | Config / auth error |
-| 3 | API error |
-| 4 | Not found |
-| 5 | Rate limit exceeded |
+| Code | Meaning             |
+| ---- | ------------------- |
+| 0    | Success             |
+| 1    | Unexpected error    |
+| 2    | Config / auth error |
+| 3    | API error           |
+| 4    | Not found           |
+| 5    | Rate limit exceeded |
 
 ## Development
 
@@ -257,12 +257,12 @@ npx vitest run tests/integration
 
 ## Tech Stack
 
-| | |
-|---|---|
-| Language | TypeScript |
-| SDK | `@capacities/api` (official Capacities SDK) |
-| CLI framework | Commander.js |
-| Config | TOML via `smol-toml` |
-| Secrets | `age-encryption` (FiloSottile's JS port) |
-| Build | `tsup` |
-| Tests | `vitest`, `msw` v2, `openapi-backend` |
+|               |                                             |
+| ------------- | ------------------------------------------- |
+| Language      | TypeScript                                  |
+| SDK           | `@capacities/api` (official Capacities SDK) |
+| CLI framework | Commander.js                                |
+| Config        | TOML via `smol-toml`                        |
+| Secrets       | `age-encryption` (FiloSottile's JS port)    |
+| Build         | `tsup`                                      |
+| Tests         | `vitest`, `msw` v2, `openapi-backend`       |
