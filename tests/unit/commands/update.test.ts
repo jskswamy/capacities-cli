@@ -29,6 +29,7 @@ import * as path from 'path'
 const mockUpdate = vi.fn()
 const mockMarkdownGet = vi.fn()
 const mockPatchMarkdown = vi.fn()
+const mockReplaceBody = vi.fn()
 const mockFetchStructures = vi.fn()
 
 vi.mock('../../../src/client.ts', () => ({
@@ -36,6 +37,7 @@ vi.mock('../../../src/client.ts', () => ({
     object: { update: mockUpdate, markdown: { get: mockMarkdownGet } },
   })),
   patchMarkdown: mockPatchMarkdown,
+  replaceBody: mockReplaceBody,
 }))
 
 vi.mock('../../../src/commands/search.ts', async (importOriginal) => {
@@ -127,10 +129,37 @@ describe('update command', () => {
     expect(mockUpdate).not.toHaveBeenCalled()
   })
 
+  it('calls replaceBody when --body flag is set', async () => {
+    mockReplaceBody.mockResolvedValue(undefined)
+    mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
+    const mdPath = path.join(tmpDir, 'body.md')
+    fs.writeFileSync(mdPath, '# New body\n\nReplacement content.\n')
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await runUpdate('obj-4', undefined, undefined, { body: mdPath })
+    expect(mockReplaceBody).toHaveBeenCalledWith(
+      expect.anything(),
+      'obj-4',
+      '# New body\n\nReplacement content.\n'
+    )
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockPatchMarkdown).not.toHaveBeenCalled()
+  })
+
+  it('propagates the partial-failure error from replaceBody without masking it', async () => {
+    mockReplaceBody.mockRejectedValue(
+      new Error('New content appended, but 1 old block(s) could not be removed — remaining block ids: block-1')
+    )
+    mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
+    const mdPath = path.join(tmpDir, 'body.md')
+    fs.writeFileSync(mdPath, '# New body\n')
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await expect(runUpdate('obj-5', undefined, undefined, { body: mdPath })).rejects.toThrow('block-1')
+  })
+
   it('throws CONFIG error when neither --props nor propertyKey provided', async () => {
     const { runUpdate } = await import('../../../src/commands/update.ts')
     await expect(runUpdate('obj-3', undefined, undefined, {})).rejects.toThrow(
-      'Either --props or <propertyKey> <value> is required'
+      'Either --body, --props, or <propertyKey> <value> is required'
     )
   })
 

@@ -24,7 +24,7 @@
 import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient, patchMarkdown } from '../client.ts'
+import { createClient, patchMarkdown, replaceBody } from '../client.ts'
 import { cacheBust } from '../cache.ts'
 import { fetchAndPersist } from '../objects.ts'
 import { fetchStructures } from './search.ts'
@@ -37,17 +37,20 @@ export async function runUpdate(
   objectId: string,
   propertyKey: string | undefined,
   value: string | undefined,
-  opts: CommandOptions & { props?: string }
+  opts: CommandOptions & { props?: string; body?: string }
 ): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)
 
-  if (opts.props) {
+  if (opts.body) {
+    const markdown = opts.body === '-' ? await readStdin() : fs.readFileSync(opts.body, 'utf8')
+    await replaceBody(client, objectId, markdown)
+  } else if (opts.props) {
     const markdown = opts.props === '-' ? await readStdin() : fs.readFileSync(opts.props, 'utf8')
     await patchMarkdown(space, objectId, markdown)
   } else {
     if (!propertyKey || value === undefined) {
-      throw new CapacitiesError(ExitCode.CONFIG, 'Either --props or <propertyKey> <value> is required')
+      throw new CapacitiesError(ExitCode.CONFIG, 'Either --body, --props, or <propertyKey> <value> is required')
     }
     const structures = await fetchStructures(space)
     const def = resolvePropertyDef(structures, propertyKey)
@@ -70,15 +73,16 @@ export async function runUpdate(
     }
   }
 
-  printLine(`Updated ${opts.props ? 'properties' : propertyKey} on ${objectId}`, opts)
+  const mode = opts.body ? 'body' : opts.props ? 'properties' : propertyKey
+  printLine(`Updated ${mode} on ${objectId}`, opts)
 }
 
 export function registerUpdate(program: Command): void {
   program
     .command('update <objectId> [propertyKey] [value]')
     .description(
-      'Update a scalar property or frontmatter properties on an object.\n\n' +
-      'Two modes:\n\n' +
+      'Update a scalar property, frontmatter properties, or the body of an object.\n\n' +
+      'Three modes:\n\n' +
       '  cap update <objectId> <propertyKey> <value>\n' +
       '    Update a single named property (e.g. description, ring, quadrant).\n' +
       '    Resolves property names and label values from the space structures.\n' +
@@ -88,14 +92,23 @@ export function registerUpdate(program: Command): void {
       '    update via PATCH /object/markdown. Only frontmatter keys are applied;\n' +
       '    body content after the closing --- is ignored by the API.\n' +
       '    Pass "-" to read from stdin.\n\n' +
-      'NOTE: Neither mode can add or replace body content.\n' +
-      'To append content to an object body, use `cap append <objectId>`.'
+      '  cap update <objectId> --body <file>\n' +
+      '    Replace the object body with <file>. The API has no replace endpoint,\n' +
+      '    so this appends the new content first and only then deletes the old\n' +
+      '    blocks — a failure partway through leaves duplicate content, never\n' +
+      '    lost content, and the error lists which old blocks still need removing.\n' +
+      '    Pass "-" to read from stdin.\n\n' +
+      'To append content without replacing, use `cap append <objectId>` instead.'
     )
     .option(
       '--props <path>',
       'read YAML frontmatter from file (or "-" for stdin) and apply as property updates; body content is ignored by the API'
     )
-    .action(async (objectId: string, propertyKey: string | undefined, value: string | undefined, cmdOpts: { props?: string }) => {
+    .option(
+      '--body <path>',
+      'replace body content from file (or "-" for stdin); appends new content then removes old blocks (not atomic — see description)'
+    )
+    .action(async (objectId: string, propertyKey: string | undefined, value: string | undefined, cmdOpts: { props?: string; body?: string }) => {
       const opts = { ...program.opts(), ...cmdOpts }
       await runUpdate(objectId, propertyKey, value, opts).catch(handleApiError)
     })
