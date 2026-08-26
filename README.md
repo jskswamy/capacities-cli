@@ -255,6 +255,21 @@ npm run coverage                # coverage report
 npx vitest run tests/integration
 ```
 
+### Releasing
+
+`cap --version` reads `package.json`'s `version` field at runtime — bump it
+with `npm version` rather than tagging directly, so the tag and the
+package version never drift apart (CI verifies they match and fails the
+release otherwise):
+
+```bash
+npm version patch   # or minor / major — bumps package.json, commits, and tags
+git push --follow-tags
+```
+
+Pushing the tag builds, tests, and creates a GitHub Release with
+auto-generated notes. npm publishing isn't wired up yet.
+
 ## Tech Stack
 
 |               |                                             |

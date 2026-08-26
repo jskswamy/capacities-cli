@@ -23,6 +23,7 @@
 // src/index.ts
 import { realpathSync } from 'fs'
 import { Command, CommanderError } from 'commander'
+import pkg from '../package.json' with { type: 'json' }
 import { ExitError, ExitCode, CapacitiesError, toExitCode, formatError } from './errors.ts'
 import { logger } from './logger.ts'
 import { registerAuth } from './commands/auth.ts'
@@ -42,7 +43,7 @@ import { registerClearCache } from './commands/cache.ts'
 export function createCLI(): Command {
   const program = new Command('capacities')
   program
-    .version('0.1.0')
+    .version(pkg.version)
     .exitOverride()
     .option('-s, --space <name>', 'override active space')
     .option('--json', 'output raw JSON')
