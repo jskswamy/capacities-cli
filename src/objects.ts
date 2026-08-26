@@ -38,14 +38,23 @@ function typeFolder(objectType: string): string {
   return TYPE_FOLDER[objectType] ?? objectType.toLowerCase() + 's'
 }
 
-export function writeObjectFile(
-  objectsDir: string,
-  objectType: string,
-  title: string,
-  markdownContent: string
-): void {
-  const dir = path.join(objectsDir, typeFolder(objectType))
-  const file = path.join(dir, `${title}.md`)
+// objectType and title come from the fetched object's own frontmatter — API-supplied
+// content, not local input. Strip path separators so a title/type containing "../" (from
+// a malicious or careless collaborator in a shared space) can't write outside objectsDir.
+function sanitizePathSegment(value: string): string {
+  return value.replace(/[/\\]/g, '_').replace(/^\.+/, (dots) => '_'.repeat(dots.length)) || '_'
+}
+
+export function writeObjectFile(objectsDir: string, objectType: string, title: string, markdownContent: string): void {
+  // sanitizePathSegment() strips path separators above, and the resolve+containment
+  // check below is a second layer — semgrep can't see either as a taint cleanser.
+  const dir = path.join(objectsDir, sanitizePathSegment(typeFolder(objectType))) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+  const file = path.join(dir, `${sanitizePathSegment(title)}.md`) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+  const resolvedDir = path.resolve(objectsDir) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+  const escapesObjectsDir = !path.resolve(file).startsWith(resolvedDir + path.sep) // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+  if (escapesObjectsDir) {
+    throw new Error(`Refusing to write outside objectsDir: ${file}`)
+  }
   fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(file, markdownContent, 'utf8')
   logger.debug(`wrote objectsDir ${file}`)
@@ -53,13 +62,9 @@ export function writeObjectFile(
 
 type MarkdownClient = { object: { markdown: { get(p: { id: string }): Promise<unknown> } } }
 
-export async function fetchAndPersist(
-  client: MarkdownClient,
-  objectsDir: string,
-  objectId: string
-): Promise<string> {
+export async function fetchAndPersist(client: MarkdownClient, objectsDir: string, objectId: string): Promise<string> {
   const resp = await client.object.markdown.get({ id: objectId })
-  const markdown = typeof resp === 'string' ? resp : (resp as { markdown?: string }).markdown ?? ''
+  const markdown = typeof resp === 'string' ? resp : ((resp as { markdown?: string }).markdown ?? '')
   if (objectsDir && markdown) {
     const typeMatch = markdown.match(/^type:\s*(.+)$/m)
     const titleMatch = markdown.match(/^title:\s*(.+)$/m)
