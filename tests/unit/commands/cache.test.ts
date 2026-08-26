@@ -21,10 +21,10 @@
  */
 
 // tests/unit/commands/cache.test.ts
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 describe('clear-cache command', () => {
   let tmpDir: string

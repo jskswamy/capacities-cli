@@ -21,10 +21,10 @@
  */
 
 // tests/unit/secrets.test.ts
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 describe('secrets', () => {
   let tmpDir: string

@@ -21,11 +21,11 @@
  */
 
 // tests/unit/commands/validate.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import { Readable } from 'stream'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const WEBLINK_STRUCTURE = { title: 'Weblink', propertyDefinitions: [] }
 

@@ -21,14 +21,14 @@
  */
 
 // src/client.ts
-import { CapacitiesClient } from '@capacities/api'
-import type { OAuthTokens } from '@capacities/api'
-import type { ResolvedSpace } from './config.ts'
-import { encryptSecrets } from './secrets.ts'
-import { getSpaceFile } from './config.ts'
-import { CapacitiesError, ExitCode } from './errors.ts'
 import * as fs from 'fs'
 import * as path from 'path'
+import { CapacitiesClient } from '@capacities/api'
+import { getSpaceFile } from './config.ts'
+import { CapacitiesError, ExitCode } from './errors.ts'
+import { encryptSecrets } from './secrets.ts'
+import type { ResolvedSpace } from './config.ts'
+import type { OAuthTokens } from '@capacities/api'
 
 const API_BASE = 'https://api.capacities.io'
 

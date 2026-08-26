@@ -21,10 +21,10 @@
  */
 
 // tests/integration/append.test.ts
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const OBJECT_ID = '2c76fdbf-6820-4a77-ab6c-d7fcb505186c'

@@ -23,8 +23,8 @@
 // src/commands/validate.ts
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient } from '../client.ts'
 import { fetchWithCache, TTL } from '../cache.ts'
+import { createClient } from '../client.ts'
 import { CapacitiesError, ExitCode, exit, handleApiError } from '../errors.ts'
 import { readStdin, type CommandOptions } from '../output.ts'
 
@@ -81,6 +81,11 @@ function tryHostname(url: string): string {
   }
 }
 
+// 177-line frontmatter validator with a branch per field type; genuinely over the
+// complexity:15 limit, needs a real split into per-field validators, not a
+// drive-by fix. Tracked separately rather than raising the threshold repo-wide
+// for one function.
+// eslint-disable-next-line complexity
 export async function runValidate(typeName: string, opts: CommandOptions): Promise<void> {
   const space = await resolveSpace(opts.space)
   const client = createClient(space)

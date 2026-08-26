@@ -21,10 +21,10 @@
  */
 
 // tests/unit/commands/auth.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // spawnSync mock: write valid TOML into the file arg so "editor" produces valid content
 const spawnSyncMock = vi.fn().mockImplementation((_editor: string, args: string[]) => {

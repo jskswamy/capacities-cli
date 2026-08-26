@@ -21,11 +21,11 @@
  */
 
 // tests/integration/link.test.ts
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
-import { server, runCLI, http, HttpResponse } from './helpers.ts'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const OBJECT_FIXTURE = { id: 'org-1', title: 'Stanford', objectType: 'Organization' }
 const MARKDOWN_FIXTURE = {

@@ -21,12 +21,14 @@
  */
 
 // src/commands/auth.ts
-import { Command } from 'commander'
+import { spawnSync } from 'child_process'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as readline from 'readline'
-import { spawnSync } from 'child_process'
+import { Command } from 'commander'
+import { cacheDeleteSpace } from '../cache.ts'
+import { createClient } from '../client.ts'
 import {
   readConfig,
   writeConfig,
@@ -35,11 +37,9 @@ import {
   getAgeKeyFile,
   type ResolvedSpace,
 } from '../config.ts'
-import { decryptSecrets, encryptSecrets, generateAgeKeypair, serializeSecrets } from '../secrets.ts'
-import { createClient } from '../client.ts'
-import { cacheDeleteSpace } from '../cache.ts'
 import { CapacitiesError, ExitCode, handleApiError } from '../errors.ts'
 import { printLine, printTable, type OutputOptions } from '../output.ts'
+import { decryptSecrets, encryptSecrets, generateAgeKeypair, serializeSecrets } from '../secrets.ts'
 
 export function listSpaces(opts: OutputOptions): void {
   const config = readConfig()

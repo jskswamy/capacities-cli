@@ -24,12 +24,12 @@
 import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient, patchMarkdown } from '../client.ts'
 import { cacheSet } from '../cache.ts'
-import { fetchAndPersist } from '../objects.ts'
+import { createClient, patchMarkdown } from '../client.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
-import { printLine, readStdin, type CommandOptions } from '../output.ts'
 import { logger } from '../logger.ts'
+import { fetchAndPersist } from '../objects.ts'
+import { printLine, readStdin, type CommandOptions } from '../output.ts'
 
 const EMPTY_TITLE_KEY_TYPES = new Set(['Organization', 'Blip'])
 

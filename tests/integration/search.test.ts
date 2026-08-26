@@ -21,11 +21,11 @@
  */
 
 // tests/integration/search.test.ts
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
-import { server, runCLI, http, HttpResponse } from './helpers.ts'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const SEARCH_FIXTURE = {
   results: [{ id: 'abc-123', structureId: 'RootPage', title: 'Stanford University' }],

@@ -21,9 +21,9 @@
  */
 
 // src/secrets.ts
-import init from 'age-encryption'
 import * as fs from 'fs'
 import * as path from 'path'
+import init from 'age-encryption'
 import * as smolToml from 'smol-toml'
 import { getAgeKeyFile } from './config.ts'
 import { CapacitiesError, ExitCode } from './errors.ts'

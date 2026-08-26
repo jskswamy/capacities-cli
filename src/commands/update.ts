@@ -24,14 +24,14 @@
 import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient, patchMarkdown, replaceBody } from '../client.ts'
 import { cacheBust } from '../cache.ts'
+import { createClient, patchMarkdown, replaceBody } from '../client.ts'
+import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
+import { logger } from '../logger.ts'
 import { fetchAndPersist } from '../objects.ts'
 import { fetchStructures } from './search.ts'
-import { resolvePropertyDef, buildPropertyPayload } from '../properties.ts'
-import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printLine, readStdin, type CommandOptions } from '../output.ts'
-import { logger } from '../logger.ts'
+import { resolvePropertyDef, buildPropertyPayload } from '../properties.ts'
 
 export async function runUpdate(
   objectId: string,

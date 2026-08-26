@@ -21,8 +21,8 @@
  */
 
 // tests/integration/create.test.ts
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import * as fs from 'fs'
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
 import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const OBJECT_FIXTURE = {

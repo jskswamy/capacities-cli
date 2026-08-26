@@ -21,16 +21,16 @@
  */
 
 // tests/integration/helpers.ts
+import { readFileSync } from 'fs'
+import { dirname, join } from 'path'
+import { Readable } from 'stream'
+import { fileURLToPath } from 'url'
+import { CommanderError } from 'commander'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import OpenAPIBackend from 'openapi-backend'
-import { readFileSync } from 'fs'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
-import { ExitError, CapacitiesError, toExitCode, formatError } from '../../src/errors.ts'
-import { CommanderError } from 'commander'
-import { Readable } from 'stream'
 import { vi } from 'vitest'
+import { ExitError, CapacitiesError, toExitCode, formatError } from '../../src/errors.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const spec = JSON.parse(readFileSync(join(__dirname, '../fixtures/openapi.json'), 'utf8'))

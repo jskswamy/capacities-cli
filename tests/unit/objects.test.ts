@@ -21,10 +21,10 @@
  */
 
 // tests/unit/objects.test.ts
-import { describe, it, expect, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import { describe, it, expect, afterEach } from 'vitest'
 import { writeObjectFile } from '../../src/objects.ts'
 
 describe('writeObjectFile', () => {

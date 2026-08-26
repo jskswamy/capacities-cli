@@ -22,8 +22,8 @@
 
 // src/commands/cache.ts
 import { Command } from 'commander'
-import { getActiveSpaceName, getCacheDir } from '../config.ts'
 import { cacheDeleteSpace } from '../cache.ts'
+import { getActiveSpaceName, getCacheDir } from '../config.ts'
 import { printLine, type CommandOptions } from '../output.ts'
 
 export function runClearCache(opts: CommandOptions): void {

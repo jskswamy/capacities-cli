@@ -23,8 +23,8 @@
 // src/commands/get.ts
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient } from '../client.ts'
 import { fetchWithCache, TTL } from '../cache.ts'
+import { createClient } from '../client.ts'
 import { handleApiError } from '../errors.ts'
 import { printLine, printJson, type CommandOptions } from '../output.ts'
 
