@@ -9,3 +9,6 @@ docs/superpowers/
 *.db
 .beads-credential-key
 .beads/
+
+# Local codebase-memory-mcp indexing state (machine-specific)
+.claude/codebase.local.md
