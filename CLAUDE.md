@@ -75,3 +75,9 @@ _Add a brief overview of your project architecture_
 ## Conventions & Patterns
 
 _Add your project-specific conventions here_
+
+## Git Commits
+
+Always use the `/commit` command instead of `git commit` directly. The
+`/commit` plugin provides atomic commit validation, intelligent message
+generation from conversation context, and style enforcement.
