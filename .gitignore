@@ -12,3 +12,7 @@ docs/superpowers/
 
 # Local codebase-memory-mcp indexing state (machine-specific)
 .claude/codebase.local.md
+
+# Repo-local tool state for pre-commit hooks (semgrep/trivy) — keeps checks
+# self-contained instead of touching each contributor's ~/.semgrep or ~/.docker
+.tool-cache/

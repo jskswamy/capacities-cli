@@ -1,0 +1,55 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: check-json
+
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: npx eslint --max-warnings=0
+        language: system
+        files: \.(ts|tsx|js|jsx)$
+        exclude: ^dist/
+
+      - id: prettier
+        name: prettier
+        entry: npx prettier --check
+        language: system
+        types_or: [ts, tsx, javascript, json, yaml, markdown]
+        exclude: ^(dist/|coverage/|\.beads/)
+
+      - id: typecheck
+        name: typecheck (tsc --noEmit)
+        entry: npx tsc --noEmit
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx)$
+
+      - id: gitleaks
+        name: gitleaks (secret scanning)
+        entry: gitleaks protect --staged --verbose --redact
+        language: system
+        pass_filenames: false
+
+      - id: semgrep
+        name: semgrep (SAST)
+        # XDG_CONFIG_HOME keeps semgrep's data/log dir inside the repo instead of
+        # touching each contributor's ~/.semgrep
+        entry: env XDG_CONFIG_HOME=.tool-cache/semgrep-config semgrep --config auto --error
+        language: system
+        pass_filenames: false
+
+      - id: trivy
+        name: trivy (dependency vulnerability scan)
+        # DOCKER_CONFIG points at an empty dir so trivy doesn't read each
+        # contributor's real ~/.docker/config.json for registry auth it doesn't need
+        entry: env DOCKER_CONFIG=.tool-cache/docker-empty-config trivy fs --cache-dir .tool-cache/trivy --scanners vuln --exit-code 1 .
+        language: system
+        pass_filenames: false
