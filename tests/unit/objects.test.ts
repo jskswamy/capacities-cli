@@ -55,11 +55,14 @@ describe('writeObjectFile', () => {
 
   it('never escapes objectsDir for an object type containing path traversal', () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-objects-'))
-    const outside = path.join(os.tmpdir(), '..', 'etc')
 
+    // Unlike the title test above, this doesn't check a guessed "outside" path —
+    // path.join(os.tmpdir(), '..', 'etc') resolves to the real /etc on Linux
+    // (os.tmpdir() is /tmp there), which exists regardless of this function.
+    // Containment is verified by walking everything writeObjectFile could have
+    // created and confirming it all resolves inside tmpDir instead.
     writeObjectFile(tmpDir, '../../etc', 'title', '# pwned')
 
-    expect(fs.existsSync(outside)).toBe(false)
     const entries = fs.readdirSync(tmpDir)
     for (const entry of entries) {
       expect(path.resolve(tmpDir, entry).startsWith(path.resolve(tmpDir) + path.sep)).toBe(true)
