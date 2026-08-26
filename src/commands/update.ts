@@ -80,6 +80,7 @@ export async function runUpdate(
 export function registerUpdate(program: Command): void {
   program
     .command('update <objectId> [propertyKey] [value]')
+    .summary('Update a scalar property, frontmatter properties, or the body of an object')
     .description(
       'Update a scalar property, frontmatter properties, or the body of an object.\n\n' +
       'Three modes:\n\n' +

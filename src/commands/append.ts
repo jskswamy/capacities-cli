@@ -57,6 +57,7 @@ export async function runAppend(
 export function registerAppend(program: Command): void {
   program
     .command('append <objectId> [content]')
+    .summary('Append markdown content to the body of an existing object')
     .description(
       'Append markdown content to the body of an existing object.\n\n' +
       'Converts markdown to blocks and inserts them at the specified position\n' +
@@ -70,6 +71,7 @@ export function registerAppend(program: Command): void {
       '  cat notes.md | cap append <objectId> --markdown -\n' +
       '    Pipe content via stdin.\n\n' +
       'NOTE: This appends — it does not replace existing body content.\n' +
+      'To replace the body instead, use `cap update <objectId> --body <file>`.\n' +
       'To update frontmatter properties (title, ring, quadrant, etc.),\n' +
       'use `cap update <objectId> --props <file>` or\n' +
       '`cap update <objectId> <propertyKey> <value>`.'
