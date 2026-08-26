@@ -74,6 +74,7 @@ capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>] 
                   [-f key=value ...] [--markdown <path|->]
 capacities update <objectId> <propertyKey> <value>
 capacities update <objectId> --props <file|->   # apply frontmatter props only
+capacities update <objectId> --body <file|->    # replace body (append new, then delete old blocks)
 capacities append <objectId> [content] [--markdown <file|->] [--position end|start]
 capacities daily-note <markdown|-> [--date <YYYY-MM-DD>] [--no-timestamp]
 capacities validate --type <type> [--json]        # reads stdin, writes corrected markdown
@@ -82,6 +83,7 @@ capacities types <name>                       # field table for named type
 capacities types --name <name>               # bare structureId (shell-friendly)
 capacities open <objectId>                   # open in web app (prints URL if headless/CI)
 capacities open <objectId> --print           # always print URL, never open browser
+capacities clear-cache                       # delete the local cache for the active (or -s) space
 
 # Save
 capacities save url <url> [--title <t>] [--desc <d>] [--markdown <notes>]  # save a URL as a weblink/media object
@@ -93,10 +95,14 @@ frontmatter (repeatable: `-f ring=Trial -f quadrant=Tool`). `--markdown`
 reads a full frontmatter+body blob from a file or stdin (`-`); when set,
 `--title` is optional and `--field` is ignored.
 
-`update` has two modes: `<propertyKey> <value>` updates a single named property
+`update` has three modes: `<propertyKey> <value>` updates a single named property
 (resolves label values automatically); `--props <file>` reads YAML frontmatter
-from a file and applies each key as a property update via `PATCH /object/markdown`.
-Body content after the closing `---` is ignored by the API — use `append` instead.
+from a file and applies each key as a property update via `PATCH /object/markdown`
+(body content after the closing `---` is ignored by the API); `--body <file>`
+replaces the object's body. The API has no replace endpoint, so this appends
+the new content first and only then deletes the old blocks — a failure partway
+through leaves duplicate content, never lost content, and the error lists which
+old blocks still need removing.
 
 `append` adds markdown content to an object's body via `POST /blocks/append`. The
 API converts the markdown to blocks and inserts them at the specified position
@@ -152,9 +158,9 @@ Every read is cached locally to avoid redundant API calls:
 | `get` | 1 hour | object ID |
 | structure list (internal) | 24 hours | per space |
 
-Cache is stored under `~/.cache/capacities/<space>/`. After mutations (`link`, `create`, `update`, `append`) the affected object's cache entry is busted automatically.
+Cache is stored under `~/.cache/capacities/<space>/`. After mutations (`link`, `create`, `update`, `append`) the affected object's cache entry is busted automatically. The structure list (object types and their properties) is **not** — it only expires on its own after 24h, so a type or property renamed in the Capacities app (e.g. `Research` → `Evergreen Note`) stays stale locally until then.
 
-To clear everything for a space: `capacities auth remove <name>` followed by `capacities auth add <name>`.
+To clear the cache immediately — after a rename, or any time you suspect stale data: `capacities clear-cache` (add `-s <name>` for a space other than the active one).
 
 ## Write-Through Mirror
 

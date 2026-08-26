@@ -37,6 +37,7 @@ import { registerValidate } from './commands/validate.ts'
 import { registerTypes } from './commands/types.ts'
 import { registerOpen } from './commands/open.ts'
 import { registerSave } from './commands/save.ts'
+import { registerClearCache } from './commands/cache.ts'
 
 export function createCLI(): Command {
   const program = new Command('capacities')
@@ -66,6 +67,7 @@ export function createCLI(): Command {
   registerTypes(program)
   registerOpen(program)
   registerSave(program)
+  registerClearCache(program)
 
   return program
 }
