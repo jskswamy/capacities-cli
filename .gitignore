@@ -3,3 +3,9 @@ dist/
 coverage/
 *.tmp
 docs/superpowers/
+
+# Beads / Dolt files (added by bd init) — synced via DoltHub, not git
+.dolt/
+*.db
+.beads-credential-key
+.beads/
