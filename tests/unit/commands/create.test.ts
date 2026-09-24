@@ -100,6 +100,16 @@ describe('create command', () => {
     expect(outSpy).toHaveBeenCalledWith(expect.stringContaining('id-xyz'))
   })
 
+  it('includes title in frontmatter alongside --desc/--tags/--field', async () => {
+    mockCreate.mockResolvedValue({ id: 'titled-obj' })
+    mockMarkdownGet.mockResolvedValue('---\ntitle: My Title\n---\n')
+    const { runCreate } = await import('../../../src/commands/create.ts')
+    await runCreate('ProjectStructureId', 'My Title', { desc: 'some desc' })
+    const markdown: string = mockCreate.mock.calls[0][0].markdown
+    expect(markdown).toContain('title:')
+    expect(markdown).toContain('My Title')
+  })
+
   it('injects --field values as frontmatter lines', async () => {
     mockCreate.mockResolvedValue({ id: 'field-obj' })
     mockMarkdownGet.mockResolvedValue('---\ntype: Page\ntitle: T\n---\n')

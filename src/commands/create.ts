@@ -51,7 +51,7 @@ export async function runCreate(
     // Caller owns the markdown — skip frontmatter assembly and title fix
     markdown = opts.markdown === '-' ? await readStdin() : fs.readFileSync(opts.markdown, 'utf8')
   } else {
-    const frontmatterLines: string[] = []
+    const frontmatterLines: string[] = [`title: ${JSON.stringify(title)}`]
     if (opts.desc) frontmatterLines.push(`description: ${JSON.stringify(opts.desc)}`)
     if (opts.tags)
       frontmatterLines.push(
@@ -65,8 +65,7 @@ export async function runCreate(
       if (eq < 1) continue
       frontmatterLines.push(`${f.slice(0, eq)}: ${f.slice(eq + 1)}`)
     }
-    markdown =
-      frontmatterLines.length > 0 ? `---\n${frontmatterLines.join('\n')}\n---\n` : `---\ntitle: ${title}\n---\n`
+    markdown = `---\n${frontmatterLines.join('\n')}\n---\n`
   }
 
   // ponytail: cast as any — SDK uses { structureId, markdown } but callers may pass
