@@ -154,4 +154,41 @@ describe('buildPropertyPayload', () => {
       boolean: { value: true },
     })
   })
+
+  it('builds date payload for a single day (start=end)', () => {
+    const def = { id: 'timeframe-uuid', name: 'Time frame', type: 'date' }
+    expect(buildPropertyPayload(def, ['2026-08-31'])).toEqual({
+      type: 'date',
+      date: {
+        dateResolution: 'day',
+        start: new Date('2026-08-31').toISOString(),
+        end: new Date('2026-08-31').toISOString(),
+      },
+    })
+  })
+
+  it('builds date payload for a range when a second value is given', () => {
+    const def = { id: 'timeframe-uuid', name: 'Time frame', type: 'date' }
+    expect(buildPropertyPayload(def, ['2026-08-31', '2027-02-12'])).toEqual({
+      type: 'date',
+      date: {
+        dateResolution: 'day',
+        start: new Date('2026-08-31').toISOString(),
+        end: new Date('2027-02-12').toISOString(),
+      },
+    })
+  })
+
+  it('throws CONFIG error for invalid date', () => {
+    const def = { id: 'timeframe-uuid', name: 'Time frame', type: 'date' }
+    expect(() => buildPropertyPayload(def, ['not-a-date'])).toThrow('is not a valid date')
+  })
+
+  it('builds title payload', () => {
+    const def = { id: 'title', name: 'title', type: 'title' }
+    expect(buildPropertyPayload(def, ['New Title'])).toEqual({
+      type: 'title',
+      title: { value: 'New Title' },
+    })
+  })
 })

@@ -76,6 +76,17 @@ export function buildPropertyPayload(def: PropertyDef, values: string[]): object
     }
     case 'boolean':
       return { type: 'boolean', boolean: { value: values[0] === 'true' } }
+    case 'date': {
+      const start = new Date(values[0])
+      if (isNaN(start.getTime())) throw new CapacitiesError(ExitCode.CONFIG, `"${values[0]}" is not a valid date`)
+      const end = values[1] ? new Date(values[1]) : start
+      return {
+        type: 'date',
+        date: { dateResolution: 'day', start: start.toISOString(), end: end.toISOString() },
+      }
+    }
+    case 'title':
+      return { type: 'title', title: { value: values[0] } }
     default:
       return { type: 'text', text: { value: values[0] } }
   }
