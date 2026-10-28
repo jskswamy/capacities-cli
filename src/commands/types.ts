@@ -26,8 +26,34 @@ import { resolveSpace } from './_space.ts'
 import { fetchStructures } from './search.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printTable, printJson, printLine, type CommandOptions } from '../output.ts'
+import { assertPatchable } from '../properties.ts'
 
-type PropDef = { name: string; type: string; labelSet?: { name: string }[] }
+type PropDef = {
+  id?: string
+  name: string
+  type: string
+  writable?: boolean
+  labelSet?: { name: string }[]
+  supportsReminders?: boolean
+  constraints?: { supportsReminders?: boolean }
+}
+
+function fieldValues(p: PropDef): string[] {
+  const values = p.labelSet ? p.labelSet.map((l) => l.name) : []
+  const reminders = p.supportsReminders === true || p.constraints?.supportsReminders === true
+  if (p.type === 'date' && reminders) values.push('reminders')
+  return values
+}
+
+function writableOf(structureId: string, p: PropDef): 'yes' | 'no' {
+  try {
+    assertPatchable(structureId, p.id ?? '', p.name || p.type, p.writable)
+    return 'yes'
+  } catch (err) {
+    if (err instanceof CapacitiesError) return 'no'
+    throw err
+  }
+}
 type FullStructure = { id: string; title: string; propertyDefinitions?: PropDef[] }
 
 export async function runTypes(
@@ -59,7 +85,8 @@ export async function runTypes(
     const fields = propDefs.map((p) => ({
       name: p.name || p.type,
       type: p.type,
-      values: p.labelSet ? p.labelSet.map((l) => l.name) : [],
+      values: fieldValues(p),
+      writable: writableOf(found.id, p),
     }))
     if (opts.json) {
       printJson({ name: found.title, structureId: found.id, fields }, opts)
@@ -67,10 +94,11 @@ export async function runTypes(
     }
     printLine(`${found.title}  (${found.id})`, opts)
     printLine('', opts)
-    const rows = propDefs.map((p) => ({
-      field: p.name || p.type,
-      type: p.type,
-      values: p.labelSet ? p.labelSet.map((l) => l.name).join(', ') : '',
+    const rows = fields.map((f) => ({
+      field: f.name,
+      type: f.type,
+      values: f.values.join(', '),
+      writable: f.writable,
     }))
     printTable(rows, opts)
     return

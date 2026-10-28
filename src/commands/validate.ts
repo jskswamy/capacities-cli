@@ -26,7 +26,9 @@ import { resolveSpace } from './_space.ts'
 import { fetchWithCache, TTL } from '../cache.ts'
 import { createClient } from '../client.ts'
 import { CapacitiesError, ExitCode, exit, handleApiError } from '../errors.ts'
+import { parseFrontmatterLine } from '../frontmatter.ts'
 import { readStdin, type CommandOptions } from '../output.ts'
+import { assertPatchable } from '../properties.ts'
 
 type ValidationResult = {
   valid: boolean
@@ -64,13 +66,41 @@ function parseFrontmatter(raw: string): { fields: Record<string, string>; body: 
   if (lines[0]?.trim() !== '---') return { fields, body: raw }
   let i = 1
   while (i < lines.length && lines[i]?.trim() !== '---') {
-    const colon = lines[i]!.indexOf(':')
-    if (colon > 0) {
-      fields[lines[i]!.slice(0, colon).trim()] = lines[i]!.slice(colon + 1).trim()
-    }
+    const field = parseFrontmatterLine(lines[i]!)
+    if (field) fields[field.key] = field.value
     i++
   }
+  if (i === lines.length) {
+    throw new CapacitiesError(ExitCode.CONFIG, 'Unterminated frontmatter; expected closing --- delimiter.')
+  }
   return { fields, body: lines.slice(i + 1).join('\n') }
+}
+
+function idForField(propDefs: { id?: string; name?: string }[], key: string): string | undefined {
+  const byId = propDefs.find((p) => p.id === key)
+  if (byId?.id) return byId.id
+  const lower = key.toLowerCase()
+  const byName = propDefs.find((p) => p.name?.toLowerCase() === lower)
+  return byName?.id
+}
+
+function refuseUnpatchableFields(
+  structureId: string | undefined,
+  propDefs: { id?: string; name?: string; writable?: boolean }[],
+  fields: Record<string, string>
+): void {
+  if (!structureId) return
+  for (const key of Object.keys(fields)) {
+    const propertyId = idForField(propDefs, key)
+    if (!propertyId) continue
+    try {
+      assertPatchable(structureId, propertyId, key, propDefs.find((p) => p.id === propertyId)?.writable)
+    } catch (err) {
+      if (!(err instanceof CapacitiesError)) throw err
+      process.stderr.write(`✗ ${err.message}\n`)
+      exit(ExitCode.UNEXPECTED)
+    }
+  }
 }
 
 function tryHostname(url: string): string {
@@ -231,6 +261,8 @@ export async function runValidate(typeName: string, opts: CommandOptions): Promi
       filled.tags = stripped
     }
   }
+
+  refuseUnpatchableFields(struct.id, propDefs, filled)
 
   // Phase 3: check required fields
   if (!filled.title?.trim()) {

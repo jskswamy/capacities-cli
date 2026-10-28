@@ -22,7 +22,8 @@
 
 // tests/unit/properties.test.ts
 import { describe, it, expect } from 'vitest'
-import { resolvePropertyDef, buildPropertyPayload } from '../../src/properties.ts'
+import { CapacitiesError, ExitCode } from '../../src/errors.ts'
+import { assertPatchable, resolvePropertyDef, buildPropertyPayload } from '../../src/properties.ts'
 
 const STRUCTURES = {
   structures: [
@@ -56,6 +57,28 @@ const STRUCTURES = {
     },
   ],
 }
+
+describe('assertPatchable', () => {
+  it('refuses a media system field and names the field and the type', () => {
+    expect(() => assertPatchable('MediaPDF', 'media_pdfPageCount', 'page count')).toThrow(/page count/)
+    expect(() => assertPatchable('MediaPDF', 'media_pdfPageCount', 'page count')).toThrow(/MediaPDF/)
+    expect(() => assertPatchable('MediaPDF', 'media_pdfPageCount', 'page count')).toThrow(CapacitiesError)
+    try {
+      assertPatchable('MediaPDF', 'media_pdfPageCount', 'page count')
+      expect.unreachable('assertPatchable should refuse media_pdfPageCount')
+    } catch (err) {
+      expect((err as CapacitiesError).code).toBe(ExitCode.CONFIG)
+    }
+  })
+
+  it('allows a whitelisted media field', () => {
+    expect(() => assertPatchable('MediaPDF', 'title', 'title')).not.toThrow()
+  })
+
+  it('allows any field when the structure is not constrained', () => {
+    expect(() => assertPatchable('Blip', 'media_pdfPageCount', 'page count')).not.toThrow()
+  })
+})
 
 describe('resolvePropertyDef', () => {
   it('resolves by exact id match (built-in)', () => {

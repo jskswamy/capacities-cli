@@ -27,6 +27,7 @@ import * as path from 'path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const mockUpdate = vi.fn()
+const mockObjectGet = vi.fn()
 const mockMarkdownGet = vi.fn()
 const mockMarkdownUpdate = vi.fn()
 const mockReplaceBody = vi.fn()
@@ -40,7 +41,11 @@ vi.mock('../../../src/client.ts', async (importOriginal) => {
   return {
     ...actual,
     createClient: vi.fn().mockImplementation(() => ({
-      object: { update: mockUpdate, markdown: { get: mockMarkdownGet, update: mockMarkdownUpdate } },
+      object: {
+        get: mockObjectGet,
+        update: mockUpdate,
+        markdown: { get: mockMarkdownGet, update: mockMarkdownUpdate },
+      },
     })),
     replaceBody: mockReplaceBody,
   }
@@ -82,6 +87,7 @@ describe('update command', () => {
       `active_space = "personal"\n[spaces.personal]\nobjects_dir = "${path.join(tmpDir, 'objects')}"\n`
     )
     mockFetchStructures.mockResolvedValue(STRUCTURES)
+    mockObjectGet.mockResolvedValue({ id: 'obj-1', structureId: 'blip-struct' })
     vi.stubGlobal('fetch', mockFetch)
     mockFetch.mockResolvedValue({ ok: true, status: 200, text: async () => '' })
   })
@@ -166,6 +172,132 @@ describe('update command', () => {
     await expect(runUpdate('obj-3', undefined, undefined, {})).rejects.toThrow(
       'Either --body, --props, or <propertyKey> <value> is required'
     )
+  })
+
+  it('does not PATCH when the field is not upsertable', async () => {
+    mockObjectGet.mockResolvedValue({ id: 'obj-1', structureId: 'MediaPDF' })
+    mockFetchStructures.mockResolvedValue({
+      structures: [
+        {
+          id: 'MediaPDF',
+          title: 'MediaPDF',
+          propertyDefinitions: [{ id: 'media_pdfPageCount', name: 'page count', type: 'number' }],
+        },
+      ],
+    })
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await expect(runUpdate('obj-1', 'page count', '12', {})).rejects.toThrow(/page count/)
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+  })
+
+  it('uses a cached structureId and does not call object.get before refusing', async () => {
+    const { cacheSet } = await import('../../../src/cache.ts')
+    cacheSet('personal', 'object/obj-pdf.json', { id: 'obj-pdf', structureId: 'MediaPDF' })
+    mockFetchStructures.mockResolvedValue({
+      structures: [
+        {
+          id: 'MediaPDF',
+          title: 'MediaPDF',
+          propertyDefinitions: [{ id: 'media_pdfPageCount', name: 'page count', type: 'number' }],
+        },
+      ],
+    })
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await expect(runUpdate('obj-pdf', 'page count', '12', {})).rejects.toThrow(/MediaPDF/)
+    expect(mockObjectGet).not.toHaveBeenCalled()
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('fails on the first illegal --props key and does not call markdown.update', async () => {
+    mockObjectGet.mockResolvedValue({ id: 'obj-1', structureId: 'MediaPDF' })
+    mockFetchStructures.mockResolvedValue({
+      structures: [
+        {
+          id: 'MediaPDF',
+          title: 'MediaPDF',
+          propertyDefinitions: [
+            { id: 'title', name: 'title', type: 'title' },
+            { id: 'media_pdfPageCount', name: 'page count', type: 'number' },
+            { id: 'media_pdfFileSize', name: 'file size', type: 'number' },
+          ],
+        },
+      ],
+    })
+    const propsFile = path.join(tmpDir, 'illegal-props.md')
+    fs.writeFileSync(propsFile, '---\ntitle: Doc\npage count: 12\nfile size: 9\n---\nignored body\n')
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await expect(runUpdate('obj-1', undefined, undefined, { props: propsFile })).rejects.toThrow(/page count/)
+    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it.each(['scalar', 'props'])('refuses normalized read-only fields before %s writes', async (mode) => {
+    mockObjectGet.mockResolvedValue({ structureId: 'RootPage' })
+    mockFetchStructures.mockResolvedValue({
+      structures: [
+        {
+          id: 'RootPage',
+          title: 'Page',
+          propertyDefinitions: [{ id: 'lastUpdatedAt', name: 'updated', type: 'lastUpdatedAt', writable: false }],
+        },
+      ],
+    })
+    const propsFile = path.join(tmpDir, 'readonly.md')
+    fs.writeFileSync(propsFile, '---\nupdated: yesterday\n---\n')
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await expect(
+      mode === 'scalar'
+        ? runUpdate('obj-1', 'updated', 'yesterday', {})
+        : runUpdate('obj-1', undefined, undefined, { props: propsFile })
+    ).rejects.toThrow(/updated.*RootPage/)
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+  })
+
+  it.each(['"page count"', "'page count'", '"page\\u0020count"'])(
+    'refuses quoted YAML key %s before markdown writes',
+    async (key) => {
+      mockObjectGet.mockResolvedValue({ structureId: 'MediaPDF' })
+      mockFetchStructures.mockResolvedValue({
+        structures: [
+          {
+            id: 'MediaPDF',
+            title: 'PDF',
+            propertyDefinitions: [{ id: 'media_pdfPageCount', name: 'page count', type: 'number' }],
+          },
+        ],
+      })
+      const propsFile = path.join(tmpDir, 'quoted.md')
+      fs.writeFileSync(propsFile, `---\n${key}: 12\n---\n`)
+      const { runUpdate } = await import('../../../src/commands/update.ts')
+      await expect(runUpdate('obj-1', undefined, undefined, { props: propsFile })).rejects.toThrow(
+        /page count|Unsupported/
+      )
+      expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each(['? page count\n: 12', '<<: *defaults', '{page count: 12}', 'title: Doc'])(
+    'fails unsupported or unterminated frontmatter closed: %s',
+    async (content) => {
+      const propsFile = path.join(tmpDir, 'unsupported.md')
+      fs.writeFileSync(propsFile, `---\n${content}\n${content === 'title: Doc' ? '' : '---\n'}`)
+      const { runUpdate } = await import('../../../src/commands/update.ts')
+      await expect(runUpdate('obj-1', undefined, undefined, { props: propsFile })).rejects.toThrow(
+        /frontmatter|Unsupported/
+      )
+      expect(mockMarkdownUpdate).not.toHaveBeenCalled()
+    }
+  )
+
+  it('allows quoted writable and unknown flat keys unchanged', async () => {
+    const propsFile = path.join(tmpDir, 'allowed.md')
+    const markdown = '---\n"description": Updated\n\'editor\'\'s field\': extra\n"unknown: field": extra\n---\n'
+    fs.writeFileSync(propsFile, markdown)
+    const { runUpdate } = await import('../../../src/commands/update.ts')
+    await runUpdate('obj-1', undefined, undefined, { props: propsFile })
+    expect(mockMarkdownUpdate).toHaveBeenCalledWith({ id: 'obj-1', markdown })
   })
 
   it('busts cache after update', async () => {

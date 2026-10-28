@@ -51,11 +51,15 @@ const mockStructures = vi.fn()
 // Plain function (not vi.fn) so vi.restoreAllMocks() in afterEach cannot strip
 // the implementation between tests — otherwise only the first test would see a
 // client with a `.space` and the rest would get `undefined`.
-vi.mock('@capacities/api', () => ({
-  CapacitiesClient: function () {
-    return { space: { structures: mockStructures } }
-  },
-}))
+vi.mock('@capacities/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@capacities/api')>()
+  return {
+    ...actual,
+    CapacitiesClient: function () {
+      return { space: { structures: mockStructures } }
+    },
+  }
+})
 
 // Helper: create a mock stdin from a string
 function mockStdin(content: string): void {
@@ -194,6 +198,91 @@ describe('validate command', () => {
     await expect(runValidate('Blip', {})).resolves.toBeUndefined()
     const out = stdoutOutput.join('')
     expect(out).toContain('totallymadeupfield: val')
+  })
+
+  it('exits 1 and does not write corrected markdown when a constrained field is not upsertable', async () => {
+    mockStructures.mockResolvedValue({
+      structures: [
+        {
+          id: 'MediaPDF',
+          title: 'MediaPDF',
+          propertyDefinitions: [
+            { id: 'title', name: 'title', type: 'title' },
+            { id: 'media_pdfPageCount', name: 'page count', type: 'number' },
+          ],
+        },
+      ],
+    })
+    mockStdin('---\ntitle: Doc\npage count: 12\n---\nbody should not appear\n')
+    const { runValidate } = await import('../../../src/commands/validate.ts')
+    const { ExitCode } = await import('../../../src/errors.ts')
+    await expect(runValidate('MediaPDF', {})).rejects.toMatchObject({ code: ExitCode.UNEXPECTED })
+    expect(stdoutOutput.join('')).toBe('')
+    expect(stderrOutput.join('')).toMatch(/page count/)
+  })
+
+  it('refuses a normalized read-only property on RootPage', async () => {
+    mockStructures.mockResolvedValue({
+      structures: [
+        {
+          id: 'RootPage',
+          title: 'Page',
+          propertyDefinitions: [{ id: 'lastUpdatedAt', name: 'updated', type: 'lastUpdatedAt', writable: false }],
+        },
+      ],
+    })
+    mockStdin('---\ntitle: Doc\nupdated: yesterday\n---\n')
+    const { runValidate } = await import('../../../src/commands/validate.ts')
+    await expect(runValidate('Page', {})).rejects.toMatchObject({ code: 1 })
+    expect(stdoutOutput.join('')).toBe('')
+    expect(stderrOutput.join('')).toMatch(/updated.*RootPage/)
+  })
+
+  it.each([
+    [false, '"page\\u0020count"'],
+    [true, '"page\\u0020count"'],
+    [false, '"media_pdfPage\\u0043ount"'],
+    [true, '"media_pdfPage\\u0043ount"'],
+  ])('refuses escaped read-only key in json=%s: %s', async (json, key) => {
+    mockStructures.mockResolvedValue({
+      structures: [
+        {
+          id: 'MediaPDF',
+          title: 'PDF',
+          propertyDefinitions: [
+            { id: 'title', name: 'title', type: 'title', writable: true },
+            { id: 'media_pdfPageCount', name: 'page count', type: 'number', writable: false },
+          ],
+        },
+      ],
+    })
+    mockStdin(`---\ntitle: Doc\n${key}: 12\n---\nbody should not appear\n`)
+    const { runValidate } = await import('../../../src/commands/validate.ts')
+    await expect(runValidate('PDF', { json })).rejects.toMatchObject({ code: 1 })
+    expect(stdoutOutput.join('')).toBe('')
+    expect(stderrOutput.join('')).toMatch(/(page count|media_pdfPageCount).*MediaPDF/)
+  })
+
+  it.each([false, true])('normalizes an escaped writable key in json=%s', async (json) => {
+    mockStdin('---\n"ti\\u0074le": Doc\n"ri\\u006eg": trial\n---\n')
+    const { runValidate } = await import('../../../src/commands/validate.ts')
+    await runValidate('Blip', { json })
+    const output = stdoutOutput.join('')
+    const corrected = json ? JSON.parse(output).corrected : output
+    expect(corrected).toContain('title: Doc\nring: Trial\n')
+    if (json) expect(JSON.parse(output).valid).toBe(true)
+  })
+
+  it.each([
+    '---\ntitle: Doc\n"page\\x20count": 12\n---\n',
+    '---\ntitle: Doc\n"page count: 12\n---\n',
+    '---\ntitle: Doc\n? page count\n: 12\n---\n',
+    '---\ntitle: Doc\n',
+  ])('rejects unsupported or unterminated frontmatter: %s', async (raw) => {
+    mockStdin(raw)
+    const { runValidate } = await import('../../../src/commands/validate.ts')
+    await expect(runValidate('Blip', { json: true })).rejects.toMatchObject({ code: 2 })
+    expect(stdoutOutput.join('')).toBe('')
   })
 
   it('strips surrounding quotes from tags', async () => {

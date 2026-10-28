@@ -21,6 +21,7 @@
  */
 
 // src/properties.ts
+import { getPublicApiUpsertablePropertyIdsForStructure, isPublicApiConstrainedUpsertStructure } from '@capacities/api'
 import { CapacitiesError, ExitCode } from './errors.ts'
 
 export type PropertyDef = {
@@ -33,6 +34,16 @@ export type PropertyDef = {
 
 type StructureEntry = { id?: string; title?: string; propertyDefinitions?: PropertyDef[] }
 type StructuresResp = { structures: StructureEntry[] }
+
+export function assertPatchable(structureId: string, propertyId: string, fieldName: string, writable?: boolean): void {
+  const allowed = getPublicApiUpsertablePropertyIdsForStructure(structureId)
+  if (writable !== false && (!isPublicApiConstrainedUpsertStructure(structureId) || allowed?.includes(propertyId)))
+    return
+  throw new CapacitiesError(
+    ExitCode.CONFIG,
+    `Cannot patch "${fieldName}" on ${structureId} — the public API will not patch this field.`
+  )
+}
 
 export function resolvePropertyDef(structures: StructuresResp, propName: string): PropertyDef {
   const allDefs = structures.structures.flatMap((s) => s.propertyDefinitions ?? [])

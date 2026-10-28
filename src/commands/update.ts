@@ -24,14 +24,69 @@
 import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { cacheBust } from '../cache.ts'
+import { cacheBust, cacheGet, TTL } from '../cache.ts'
 import { createClient, replaceBody } from '../client.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
+import { parseFrontmatterLine } from '../frontmatter.ts'
 import { logger } from '../logger.ts'
 import { fetchAndPersist } from '../objects.ts'
 import { fetchStructures } from './search.ts'
 import { printLine, readStdin, type CommandOptions } from '../output.ts'
-import { resolvePropertyDef, buildPropertyPayload } from '../properties.ts'
+import { assertPatchable, buildPropertyPayload, resolvePropertyDef } from '../properties.ts'
+
+type ObjectReader = { object: { get(params: { id: string }): Promise<{ structureId?: string }> } }
+
+function cachedStructureId(spaceName: string, objectId: string): string | undefined {
+  const cached = cacheGet<unknown>(spaceName, `object/${objectId}.json`, TTL.OBJECT)
+  if (!cached || typeof cached !== 'object' || !('structureId' in cached)) return undefined
+  const structureId = (cached as { structureId?: unknown }).structureId
+  return typeof structureId === 'string' && structureId ? structureId : undefined
+}
+
+async function resolveStructureId(spaceName: string, client: ObjectReader, objectId: string): Promise<string> {
+  const cached = cachedStructureId(spaceName, objectId)
+  if (cached) return cached
+  const got = await client.object.get({ id: objectId })
+  if (!got?.structureId) {
+    throw new CapacitiesError(ExitCode.NOT_FOUND, `Object ${objectId} has no structure id`)
+  }
+  return got.structureId
+}
+
+function frontmatterKeys(raw: string): string[] {
+  const lines = raw.split('\n')
+  if (lines[0]?.trim() !== '---') return []
+  const keys: string[] = []
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i]!
+    if (line.trim() === '---') return keys
+    const field = parseFrontmatterLine(line)
+    if (field) keys.push(field.key)
+  }
+  throw new CapacitiesError(ExitCode.CONFIG, 'Unterminated frontmatter; expected closing --- delimiter.')
+}
+
+type PatchDef = { id: string; name: string; writable?: boolean }
+
+function defForField(defs: PatchDef[], key: string): PatchDef | undefined {
+  const byId = defs.find((d) => d.id === key)
+  if (byId) return byId
+  const lower = key.toLowerCase()
+  return defs.find((d) => d.name.toLowerCase() === lower)
+}
+
+function assertPropsPatchable(
+  structureId: string,
+  structures: { structures: { id?: string; propertyDefinitions?: PatchDef[] }[] },
+  markdown: string
+): void {
+  const defs = structures.structures.find((s) => s.id === structureId)?.propertyDefinitions ?? []
+  for (const key of frontmatterKeys(markdown)) {
+    const def = defForField(defs, key)
+    if (!def) continue
+    assertPatchable(structureId, def.id, key, def.writable)
+  }
+}
 
 export async function runUpdate(
   objectId: string,
@@ -47,6 +102,8 @@ export async function runUpdate(
     await replaceBody(client, objectId, markdown)
   } else if (opts.props) {
     const markdown = opts.props === '-' ? await readStdin() : fs.readFileSync(opts.props, 'utf8')
+    const structureId = await resolveStructureId(space.name, client, objectId)
+    assertPropsPatchable(structureId, await fetchStructures(space), markdown)
     await client.object.markdown.update({ id: objectId, markdown })
   } else {
     if (!propertyKey || value === undefined) {
@@ -60,6 +117,8 @@ export async function runUpdate(
         `"${propertyKey}" is an entity field — use \`cap link\` <id> ${propertyKey} <target-ids>`
       )
     }
+    const structureId = await resolveStructureId(space.name, client, objectId)
+    assertPatchable(structureId, def.id, def.name || propertyKey, def.writable)
     await client.object.update({
       id: objectId,
       properties: { [def.id]: buildPropertyPayload(def, [value]) },
