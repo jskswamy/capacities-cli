@@ -23,12 +23,13 @@
 // src/commands/open.ts
 import { execFileSync } from 'child_process'
 import { Command } from 'commander'
-import { type ResolvedSpace } from '../config.ts'
-import { resolveSpace } from './_space.ts'
 import { fetchWithCache, TTL } from '../cache.ts'
 import { createClient } from '../client.ts'
-import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
-import { printLine, type CommandOptions } from '../output.ts'
+import { type ResolvedSpace } from '../config.ts'
+import { CapacitiesError, ExitCode, handleApiError } from '../errors.ts'
+import { parsePipedId } from '../list-format.ts'
+import { printLine, readStdin, type CommandOptions } from '../output.ts'
+import { resolveSpace } from './_space.ts'
 
 const WEB_BASE = 'https://app.capacities.io'
 
@@ -56,10 +57,19 @@ function launchUrl(url: string): void {
   }
 }
 
-export async function runOpen(objectId: string, opts: CommandOptions & { print?: boolean }): Promise<void> {
+async function resolveObjectId(objectId: string | undefined): Promise<string> {
+  if (objectId !== undefined) return objectId
+  if (process.stdin.isTTY) {
+    throw new CapacitiesError(ExitCode.CONFIG, 'object id is missing')
+  }
+  return parsePipedId(await readStdin())
+}
+
+export async function runOpen(objectId: string | undefined, opts: CommandOptions & { print?: boolean }): Promise<void> {
+  const id = await resolveObjectId(objectId)
   const space = await resolveSpace(opts.space)
   const spaceId = await fetchSpaceId(space)
-  const url = `${WEB_BASE}/${spaceId}/${objectId}`
+  const url = `${WEB_BASE}/${spaceId}/${id}`
 
   if (opts.print || isHeadless()) {
     printLine(url, opts)
@@ -70,10 +80,10 @@ export async function runOpen(objectId: string, opts: CommandOptions & { print?:
 
 export function registerOpen(program: Command): void {
   program
-    .command('open <objectId>')
-    .description('Open an object in the Capacities web app')
+    .command('open [objectId]')
+    .description('Open an object in the Capacities web app. Omit the id to read one piped list line.')
     .option('--print', 'print URL instead of opening')
-    .action(async (objectId: string, cmdOpts: { print?: boolean }) => {
+    .action(async (objectId: string | undefined, cmdOpts: { print?: boolean }) => {
       const globalOpts = program.opts() as CommandOptions
       await runOpen(objectId, { ...globalOpts, print: cmdOpts.print }).catch(handleApiError)
     })
