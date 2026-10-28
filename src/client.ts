@@ -21,16 +21,12 @@
  */
 
 // src/client.ts
-import * as fs from 'fs'
-import * as path from 'path'
 import { CapacitiesClient } from '@capacities/api'
 import { getSpaceFile } from './config.ts'
 import { CapacitiesError, ExitCode } from './errors.ts'
 import { encryptSecrets } from './secrets.ts'
 import type { ResolvedSpace } from './config.ts'
 import type { OAuthTokens } from '@capacities/api'
-
-const API_BASE = 'https://api.capacities.io'
 
 // The API has no "replace body" endpoint — only create, append, and a frontmatter-only
 // PATCH. Body replacement is simulated here as append-then-delete-old (never delete-then-append),
@@ -59,75 +55,6 @@ export async function replaceBody(client: CapacitiesClient, objectId: string, ma
       `New content appended, but ${remaining.length} old block(s) could not be removed — ` +
         `object now has duplicate content. Remaining block ids: ${remaining.join(', ')}`
     )
-  }
-}
-
-// ponytail: covers common media types; extend when a new type is needed
-const MIME_MAP: Record<string, string> = {
-  pdf: 'application/pdf',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  gif: 'image/gif',
-  webp: 'image/webp',
-  mp3: 'audio/mpeg',
-  m4a: 'audio/mp4',
-  wav: 'audio/wav',
-  mp4: 'video/mp4',
-  mov: 'video/quicktime',
-  mkv: 'video/x-matroska',
-}
-
-export async function uploadMedia(
-  space: ResolvedSpace,
-  filePath: string,
-  opts: { title?: string; collections?: string[] } = {}
-): Promise<string> {
-  const buf = fs.readFileSync(filePath)
-  const fileName = path.basename(filePath)
-  const ext = path.extname(fileName).slice(1).toLowerCase()
-  const fileType = MIME_MAP[ext]
-  const token = space.authType === 'api_token' ? space.apiToken : space.accessToken
-  const authHeader = { Authorization: `Bearer ${token}` }
-  const jsonHeaders = { ...authHeader, 'Content-Type': 'application/json' }
-
-  const initRes = await fetch(`${API_BASE}/object/media/upload`, {
-    method: 'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify({
-      fileName,
-      fileSize: buf.length,
-      ...(fileType && { fileType }),
-      ...(opts.title && { title: opts.title }),
-      ...(opts.collections?.length && { collections: opts.collections }),
-    }),
-  })
-  if (!initRes.ok) throw Object.assign(new Error(String(initRes.status)), { status: initRes.status })
-  const { id } = (await initRes.json()) as { id: string }
-
-  try {
-    const putRes = await fetch(`${API_BASE}/object/media/upload/part?id=${id}&partNumber=1`, {
-      method: 'PUT',
-      headers: { ...authHeader, 'Content-Type': 'application/octet-stream' },
-      body: buf,
-    })
-    if (!putRes.ok) throw Object.assign(new Error(String(putRes.status)), { status: putRes.status })
-
-    const completeRes = await fetch(`${API_BASE}/object/media/upload/complete`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify({ id }),
-    })
-    if (!completeRes.ok) throw Object.assign(new Error(String(completeRes.status)), { status: completeRes.status })
-    const result = (await completeRes.json()) as { id: string }
-    return result.id
-  } catch (e) {
-    await fetch(`${API_BASE}/object/media/upload/abort`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify({ id }),
-    }).catch(() => {})
-    throw e
   }
 }
 

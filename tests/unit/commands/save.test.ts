@@ -27,10 +27,11 @@ import * as path from 'path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const mockCreateFromUrl = vi.fn()
+const mockCreateFromMedia = vi.fn()
 
 vi.mock('@capacities/api', () => ({
   CapacitiesClient: vi.fn().mockImplementation(() => ({
-    object: { createFromUrl: mockCreateFromUrl },
+    object: { createFromUrl: mockCreateFromUrl, createFromMedia: mockCreateFromMedia },
   })),
 }))
 
@@ -107,7 +108,7 @@ describe('runSaveFile', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cap-save-file-'))
     makeEnv(tmpDir)
-    testFile = path.join(tmpDir, 'test.pdf')
+    testFile = path.join(tmpDir, 'note.pdf')
     fs.writeFileSync(testFile, 'PDF content')
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
@@ -119,29 +120,20 @@ describe('runSaveFile', () => {
     vi.clearAllMocks()
   })
 
-  it('calls init → PUT → complete in order and prints the ID', async () => {
-    mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'upload-id' }) }) // init
-      .mockResolvedValueOnce({ ok: true }) // PUT
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'media-obj-id' }) }) // complete
+  it('uploads a pdf through object.createFromMedia without calling fetch', async () => {
+    mockCreateFromMedia.mockResolvedValue({ id: 'media-obj-id' })
     const outSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     const { runSaveFile } = await import('../../../src/commands/save.ts')
     await runSaveFile(testFile, {})
-    expect(mockFetch).toHaveBeenCalledTimes(3)
-    expect(mockFetch.mock.calls[0][0]).toContain('/object/media/upload')
-    expect(mockFetch.mock.calls[1][0]).toContain('/object/media/upload/part')
-    expect(mockFetch.mock.calls[2][0]).toContain('/object/media/upload/complete')
+    expect(mockCreateFromMedia).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileName: 'note.pdf',
+        fileType: 'application/pdf',
+        file: expect.any(Uint8Array),
+      })
+    )
+    expect(mockFetch).not.toHaveBeenCalled()
     expect(outSpy).toHaveBeenCalledWith(expect.stringContaining('media-obj-id'))
-  })
-
-  it('calls abort when PUT fails', async () => {
-    mockFetch
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'upload-id' }) }) // init
-      .mockResolvedValueOnce({ ok: false, status: 500 }) // PUT fails
-      .mockResolvedValueOnce({ ok: true }) // abort
-    const { runSaveFile } = await import('../../../src/commands/save.ts')
-    await expect(runSaveFile(testFile, {})).rejects.toThrow()
-    expect(mockFetch.mock.calls[2][0]).toContain('/object/media/upload/abort')
   })
 
   it('throws CONFIG error for non-existent path before any fetch', async () => {

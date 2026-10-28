@@ -22,11 +22,28 @@
 
 // src/commands/save.ts
 import * as fs from 'fs'
+import * as path from 'path'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
-import { createClient, uploadMedia } from '../client.ts'
+import { createClient } from '../client.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printLine, type CommandOptions } from '../output.ts'
+
+// ponytail: covers common media types; extend when a new type is needed
+const MIME_MAP: Record<string, string> = {
+  pdf: 'application/pdf',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  mp3: 'audio/mpeg',
+  m4a: 'audio/mp4',
+  wav: 'audio/wav',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  mkv: 'video/x-matroska',
+}
 
 export async function runSaveUrl(
   url: string,
@@ -59,8 +76,17 @@ export async function runSaveFile(
     ?.split(',')
     .map((s) => s.trim())
     .filter(Boolean)
-  const id = await uploadMedia(space, filePath, { title: opts.title, collections })
-  printLine(id, opts)
+  const file = fs.readFileSync(filePath)
+  const fileName = path.basename(filePath)
+  const fileType = MIME_MAP[path.extname(fileName).slice(1).toLowerCase()]
+  const result = await createClient(space).object.createFromMedia({
+    file,
+    fileName,
+    ...(fileType && { fileType }),
+    ...(opts.title && { title: opts.title }),
+    ...(collections?.length && { collections }),
+  })
+  printLine(result.id, opts)
 }
 
 export function registerSave(program: Command): void {

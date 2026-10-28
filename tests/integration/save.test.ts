@@ -75,9 +75,23 @@ describe('capacities save file', () => {
   })
 
   it('uploads a file through init→PUT→complete and prints the ID', async () => {
+    const fileSize = fs.statSync(tmpFile).size
     server.use(
-      http.post('https://api.capacities.io/object/media/upload', () => HttpResponse.json({ id: 'upload-session-id' })),
-      http.put('https://api.capacities.io/object/media/upload/part', () => new HttpResponse(null, { status: 200 })),
+      http.post('https://api.capacities.io/object/media/upload', () =>
+        HttpResponse.json({
+          id: '7d2e7f8a-4c3b-4e1d-9f0a-123456789abc',
+          status: 'pending',
+          fileName: path.basename(tmpFile),
+          fileType: 'application/pdf',
+          fileSize,
+          partSize: fileSize,
+          partCount: 1,
+          expiresAt: '2026-07-08T08:30:00.000Z',
+        })
+      ),
+      http.put('https://api.capacities.io/object/media/upload/part', () =>
+        HttpResponse.json({ number: 1, size: fileSize })
+      ),
       http.post('https://api.capacities.io/object/media/upload/complete', () =>
         HttpResponse.json({ id: 'media-obj-id' })
       )
