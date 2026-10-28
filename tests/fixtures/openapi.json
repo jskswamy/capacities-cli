@@ -42,6 +42,89 @@
     }
   ],
   "paths": {
+    "/objects/structure": {
+      "get": {
+        "summary": "List objects by structure",
+        "operationId": "listObjectsByStructure",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/ListCursor"
+          },
+          {
+            "$ref": "#/components/parameters/ListPageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ListObjectsPage"
+          }
+        }
+      }
+    },
+    "/objects/tag": {
+      "get": {
+        "summary": "List objects by tag",
+        "operationId": "listObjectsByTag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/ListCursor"
+          },
+          {
+            "$ref": "#/components/parameters/ListPageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ListObjectsPage"
+          }
+        }
+      }
+    },
+    "/objects/collection": {
+      "get": {
+        "summary": "List objects by collection",
+        "operationId": "listObjectsByCollection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/ListCursor"
+          },
+          {
+            "$ref": "#/components/parameters/ListPageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ListObjectsPage"
+          }
+        }
+      }
+    },
     "/space": {
       "get": {
         "summary": "Get space",
@@ -2609,6 +2692,76 @@
     }
   },
   "components": {
+    "parameters": {
+      "ListCursor": {
+        "name": "cursor",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "ListPageSize": {
+        "name": "pageSize",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 100
+        }
+      }
+    },
+    "responses": {
+      "ListObjectsPage": {
+        "description": "A page of object summaries",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "results",
+                "nextCursor",
+                "hasMore"
+              ],
+              "properties": {
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "structureId",
+                      "title"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "structureId": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "nextCursor": {
+                  "type": "string",
+                  "format": "uuid",
+                  "nullable": true
+                },
+                "hasMore": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "schemas": {
       "WritableApiObjectProperties": {
         "type": "object",

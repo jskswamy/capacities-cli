@@ -68,6 +68,9 @@ capacities auth keygen           # generate age keypair → ~/.age/key.txt
 
 # Content
 capacities search <query> [--type <type>]         # search objects (cached 10 min)
+capacities list --type <type>                     # list objects of a type (cached 10 min)
+capacities list --tag <id>                        # list objects with a tag (cached 10 min)
+capacities list --collection <id>                 # list objects in a collection (cached 10 min)
 capacities get <objectId>                         # get object as markdown (cached 1h)
 capacities link <objectId> <propertyKey> <targetId...>  # set entity field (one call, N targets)
 capacities create --type <type> --title <title> [--desc <desc>] [--tags <tags>] \
@@ -89,6 +92,24 @@ capacities clear-cache                       # delete the local cache for the ac
 capacities save url <url> [--title <t>] [--desc <d>] [--markdown <notes>]  # save a URL as a weblink/media object
 capacities save file <path> [--title <t>] [--collections <uuid,...>]        # upload a local file as a media object
 ```
+
+`list` requires exactly one of `--type`, `--tag`, or `--collection` and walks all
+pages. At a terminal it opens a built-in title picker; Enter prints only the
+chosen ID, Escape cancels. In a pipe it prints `id<TAB>title` lines; `--json`
+prints `{ "results": [...] }` without a picker. Full lists are cached per space
+and selector for 10 minutes (writes do not invalidate them).
+
+```bash
+cap get "$(cap list --type Page)"          # built-in picker
+cap list --type Page | fzf | cap get        # external picker; one row required
+cap list --tag <tagId> | fzf | cap open --print
+cap list --collection <collectionId> --json
+```
+
+`get` and `open` accept one piped ID (or one ID-tab-title row) when no ID argument
+is supplied. An explicit ID wins over stdin. `append` and `update` still require
+an ID argument: their pipes remain **content**, not object IDs (`--markdown -`,
+`--body -`, or `--props -`).
 
 The `-f / --field` flag on `create` injects a custom property line into the
 frontmatter (repeatable: `-f ring=Trial -f quadrant=Tool`). `--markdown`
@@ -152,11 +173,12 @@ echo "$frontmatter" | capacities validate --type Blip \
 
 Every read is cached locally to avoid redundant API calls:
 
-| Command                   | Cache TTL  | Cache key    |
-| ------------------------- | ---------- | ------------ |
-| `search`                  | 10 minutes | query + type |
-| `get`                     | 1 hour     | object ID    |
-| structure list (internal) | 24 hours   | per space    |
+| Command                   | Cache TTL  | Cache key          |
+| ------------------------- | ---------- | ------------------ |
+| `search`                  | 10 minutes | query + type       |
+| `list`                    | 10 minutes | selector kind + ID |
+| `get`                     | 1 hour     | object ID          |
+| structure list (internal) | 24 hours   | per space          |
 
 Cache is stored under `~/.cache/capacities/<space>/`. After mutations (`link`, `create`, `update`, `append`) the affected object's cache entry is busted automatically. The structure list (object types and their properties) is **not** — it only expires on its own after 24h, so a type or property renamed in the Capacities app (e.g. `Research` → `Evergreen Note`) stays stale locally until then.
 
