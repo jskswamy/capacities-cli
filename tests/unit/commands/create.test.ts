@@ -28,20 +28,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const mockCreate = vi.fn()
 const mockMarkdownGet = vi.fn()
-const mockPatchMarkdown = vi.fn()
+const mockMarkdownUpdate = vi.fn()
+const mockFetch = vi.fn()
+
+vi.stubGlobal('fetch', mockFetch)
 
 vi.mock('@capacities/api', () => ({
   CapacitiesClient: vi.fn().mockImplementation(() => ({
     object: {
-      markdown: { create: mockCreate, get: mockMarkdownGet },
+      markdown: { create: mockCreate, get: mockMarkdownGet, update: mockMarkdownUpdate },
     },
   })),
 }))
-
-vi.mock('../../../src/client.ts', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('../../../src/client.ts')>()
-  return { ...mod, patchMarkdown: mockPatchMarkdown }
-})
 
 describe('create command', () => {
   let tmpDir: string
@@ -59,6 +57,8 @@ describe('create command', () => {
       path.join(tmpDir, 'capacities', 'config.toml'),
       'active_space = "personal"\n[spaces.personal]\nobjects_dir = "' + path.join(tmpDir, 'objects') + '"\n'
     )
+    vi.stubGlobal('fetch', mockFetch)
+    mockFetch.mockResolvedValue({ ok: true, status: 200, text: async () => '' })
   })
 
   afterEach(() => {
@@ -68,19 +68,17 @@ describe('create command', () => {
     delete process.env.CAPACITIES_TOKEN
     delete process.env.CAPACITIES_SPACE
     vi.clearAllMocks()
+    vi.unstubAllGlobals()
   })
 
-  it('sends bare-YAML title update for Organization type', async () => {
+  it('sends bare-YAML title update for Organization type through object.markdown.update', async () => {
     mockCreate.mockResolvedValue({ id: 'new-org' })
-    mockPatchMarkdown.mockResolvedValue(undefined)
+    mockMarkdownUpdate.mockResolvedValue({ id: 'new-org' })
     mockMarkdownGet.mockResolvedValue('---\ntype: Organization\ntitle: Bell Labs\n---\n')
     const { runCreate } = await import('../../../src/commands/create.ts')
     await runCreate('Organization', 'Bell Labs', {})
-    expect(mockPatchMarkdown).toHaveBeenCalledWith(
-      expect.anything(),
-      'new-org',
-      expect.stringContaining('title: Bell Labs')
-    )
+    expect(mockMarkdownUpdate).toHaveBeenCalledWith({ id: 'new-org', markdown: '---\ntitle: Bell Labs\n---\n' })
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 
   it('does NOT send bare-YAML patch for types that support title in createViaMD', async () => {
@@ -88,7 +86,7 @@ describe('create command', () => {
     mockMarkdownGet.mockResolvedValue('---\ntype: Page\ntitle: My Page\n---\n')
     const { runCreate } = await import('../../../src/commands/create.ts')
     await runCreate('Page', 'My Page', {})
-    expect(mockPatchMarkdown).not.toHaveBeenCalled()
+    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
   })
 
   it('prints the new object ID', async () => {
@@ -132,7 +130,7 @@ describe('create command', () => {
         markdown: '---\ntitle: From File\n---\nBody here',
       })
     )
-    expect(mockPatchMarkdown).not.toHaveBeenCalled()
+    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
   })
 
   it('--markdown - reads from stdin', async () => {

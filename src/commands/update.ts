@@ -25,7 +25,7 @@ import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
 import { cacheBust } from '../cache.ts'
-import { createClient, patchMarkdown, replaceBody } from '../client.ts'
+import { createClient, replaceBody } from '../client.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { logger } from '../logger.ts'
 import { fetchAndPersist } from '../objects.ts'
@@ -47,7 +47,7 @@ export async function runUpdate(
     await replaceBody(client, objectId, markdown)
   } else if (opts.props) {
     const markdown = opts.props === '-' ? await readStdin() : fs.readFileSync(opts.props, 'utf8')
-    await patchMarkdown(space, objectId, markdown)
+    await client.object.markdown.update({ id: objectId, markdown })
   } else {
     if (!propertyKey || value === undefined) {
       throw new CapacitiesError(ExitCode.CONFIG, 'Either --body, --props, or <propertyKey> <value> is required')

@@ -25,7 +25,7 @@ import * as fs from 'fs'
 import { Command } from 'commander'
 import { resolveSpace } from './_space.ts'
 import { cacheSet } from '../cache.ts'
-import { createClient, patchMarkdown } from '../client.ts'
+import { createClient } from '../client.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { logger } from '../logger.ts'
 import { fetchAndPersist } from '../objects.ts'
@@ -68,9 +68,7 @@ export async function runCreate(
     markdown = `---\n${frontmatterLines.join('\n')}\n---\n`
   }
 
-  // ponytail: cast as any — SDK uses { structureId, markdown } but callers may pass
-  // objectType by name; unit tests mock the SDK so validation is bypassed there.
-  const result = await (client.object.markdown as any).create({
+  const result = await client.object.markdown.create({
     structureId: objectType,
     markdown,
   })
@@ -80,7 +78,7 @@ export async function runCreate(
   // Fix title for types where createViaMD doesn't set it — only when we own the frontmatter
   if (!opts.markdown && EMPTY_TITLE_KEY_TYPES.has(objectType)) {
     logger.debug(`applying bare-YAML title fix for ${objectType}`)
-    await patchMarkdown(space, objectId, `---\ntitle: ${title}\n---\n`)
+    await client.object.markdown.update({ id: objectId, markdown: `---\ntitle: ${title}\n---\n` })
   }
 
   try {

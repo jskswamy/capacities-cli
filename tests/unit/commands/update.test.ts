@@ -28,17 +28,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const mockUpdate = vi.fn()
 const mockMarkdownGet = vi.fn()
-const mockPatchMarkdown = vi.fn()
+const mockMarkdownUpdate = vi.fn()
 const mockReplaceBody = vi.fn()
 const mockFetchStructures = vi.fn()
+const mockFetch = vi.fn()
 
-vi.mock('../../../src/client.ts', () => ({
-  createClient: vi.fn().mockImplementation(() => ({
-    object: { update: mockUpdate, markdown: { get: mockMarkdownGet } },
-  })),
-  patchMarkdown: mockPatchMarkdown,
-  replaceBody: mockReplaceBody,
-}))
+vi.stubGlobal('fetch', mockFetch)
+
+vi.mock('../../../src/client.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/client.ts')>()
+  return {
+    ...actual,
+    createClient: vi.fn().mockImplementation(() => ({
+      object: { update: mockUpdate, markdown: { get: mockMarkdownGet, update: mockMarkdownUpdate } },
+    })),
+    replaceBody: mockReplaceBody,
+  }
+})
 
 vi.mock('../../../src/commands/search.ts', async (importOriginal) => {
   const actual = (await importOriginal()) as object
@@ -76,6 +82,8 @@ describe('update command', () => {
       `active_space = "personal"\n[spaces.personal]\nobjects_dir = "${path.join(tmpDir, 'objects')}"\n`
     )
     mockFetchStructures.mockResolvedValue(STRUCTURES)
+    vi.stubGlobal('fetch', mockFetch)
+    mockFetch.mockResolvedValue({ ok: true, status: 200, text: async () => '' })
   })
 
   afterEach(() => {
@@ -85,6 +93,7 @@ describe('update command', () => {
     delete process.env.CAPACITIES_TOKEN
     delete process.env.CAPACITIES_SPACE
     vi.clearAllMocks()
+    vi.unstubAllGlobals()
   })
 
   it('resolves built-in property id and sends text payload', async () => {
@@ -118,19 +127,15 @@ describe('update command', () => {
     await expect(runUpdate('obj-1', 'personalities', 'p1', {})).rejects.toThrow('use `cap link`')
   })
 
-  it('calls patchMarkdown when --props flag is set', async () => {
-    mockPatchMarkdown.mockResolvedValue(undefined)
+  it('sends --props through object.markdown.update', async () => {
+    mockMarkdownUpdate.mockResolvedValue({ id: 'obj-1' })
     mockMarkdownGet.mockResolvedValue('---\ntype: Blip\ntitle: Grafana\n---\n')
-    const mdPath = path.join(tmpDir, 'grafana.md')
-    fs.writeFileSync(mdPath, '---\nquadrant: Tool\nring: Adopt\n---\n')
+    const propsFile = path.join(tmpDir, 'props.md')
+    fs.writeFileSync(propsFile, '---\ndescription: Updated description\n---\n')
     const { runUpdate } = await import('../../../src/commands/update.ts')
-    await runUpdate('obj-2', undefined, undefined, { props: mdPath })
-    expect(mockPatchMarkdown).toHaveBeenCalledWith(
-      expect.objectContaining({ authType: 'api_token' }),
-      'obj-2',
-      '---\nquadrant: Tool\nring: Adopt\n---\n'
-    )
-    expect(mockUpdate).not.toHaveBeenCalled()
+    await runUpdate('obj-1', undefined, undefined, { props: propsFile })
+    expect(mockMarkdownUpdate).toHaveBeenCalledWith({ id: 'obj-1', markdown: expect.stringContaining('description:') })
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 
   it('calls replaceBody when --body flag is set', async () => {
@@ -142,7 +147,7 @@ describe('update command', () => {
     await runUpdate('obj-4', undefined, undefined, { body: mdPath })
     expect(mockReplaceBody).toHaveBeenCalledWith(expect.anything(), 'obj-4', '# New body\n\nReplacement content.\n')
     expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockPatchMarkdown).not.toHaveBeenCalled()
+    expect(mockMarkdownUpdate).not.toHaveBeenCalled()
   })
 
   it('propagates the partial-failure error from replaceBody without masking it', async () => {
