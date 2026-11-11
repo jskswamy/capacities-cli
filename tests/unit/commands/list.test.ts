@@ -45,14 +45,16 @@ vi.mock('../../../src/picker.ts', () => ({
 }))
 
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    objects: {
-      structure: mockStructure,
-      tag: mockTag,
-      collection: mockCollection,
-    },
-    space: { structures: mockStructures },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      objects: {
+        structure: mockStructure,
+        tag: mockTag,
+        collection: mockCollection,
+      },
+      space: { structures: mockStructures },
+    }
+  }),
 }))
 
 const BUILTIN_STRUCTURE_IDS = [

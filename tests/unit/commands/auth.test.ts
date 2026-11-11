@@ -57,9 +57,11 @@ vi.mock('../../../src/secrets.ts', () => ({
 }))
 
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    space: { get: vi.fn().mockResolvedValue({ id: 'space-123', name: 'My Space' }) },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      space: { get: vi.fn().mockResolvedValue({ id: 'space-123', name: 'My Space' }) },
+    }
+  }),
 }))
 
 // --- helpers ---

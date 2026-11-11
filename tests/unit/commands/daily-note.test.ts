@@ -29,11 +29,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 const mockAppend = vi.fn()
 
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    blocks: {
-      dailyNote: { append: mockAppend },
-    },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      blocks: {
+        dailyNote: { append: mockAppend },
+      },
+    }
+  }),
 }))
 
 describe('daily-note command', () => {

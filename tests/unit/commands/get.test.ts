@@ -32,9 +32,11 @@ import { CapacitiesError, ExitCode } from '../../../src/errors.ts'
 const mockMarkdownGet = vi.fn()
 let stdinSpy: ReturnType<typeof vi.spyOn> | undefined
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    object: { markdown: { get: mockMarkdownGet } },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      object: { markdown: { get: mockMarkdownGet } },
+    }
+  }),
 }))
 
 describe('get command', () => {

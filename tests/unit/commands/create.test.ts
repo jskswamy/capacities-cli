@@ -34,11 +34,13 @@ const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    object: {
-      markdown: { create: mockCreate, get: mockMarkdownGet, update: mockMarkdownUpdate },
-    },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      object: {
+        markdown: { create: mockCreate, get: mockMarkdownGet, update: mockMarkdownUpdate },
+      },
+    }
+  }),
 }))
 
 describe('create command', () => {

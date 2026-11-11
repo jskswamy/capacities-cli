@@ -35,9 +35,11 @@ const mockExecFileSync = vi.fn()
 let stdinSpy: ReturnType<typeof vi.spyOn> | undefined
 
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    space: { get: mockSpaceGet },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      space: { get: mockSpaceGet },
+    }
+  }),
 }))
 
 vi.mock('child_process', () => ({

@@ -30,10 +30,12 @@ const mockSearch = vi.fn()
 const mockStructures = vi.fn()
 
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    objects: { search: mockSearch },
-    space: { structures: mockStructures },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      objects: { search: mockSearch },
+      space: { structures: mockStructures },
+    }
+  }),
 }))
 
 describe('search command', () => {

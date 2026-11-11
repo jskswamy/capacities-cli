@@ -30,9 +30,11 @@ const mockCreateFromUrl = vi.fn()
 const mockCreateFromMedia = vi.fn()
 
 vi.mock('@capacities/api', () => ({
-  CapacitiesClient: vi.fn().mockImplementation(() => ({
-    object: { createFromUrl: mockCreateFromUrl, createFromMedia: mockCreateFromMedia },
-  })),
+  CapacitiesClient: vi.fn(function () {
+    return {
+      object: { createFromUrl: mockCreateFromUrl, createFromMedia: mockCreateFromMedia },
+    }
+  }),
 }))
 
 const mockFetch = vi.fn()
