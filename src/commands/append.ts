@@ -23,11 +23,11 @@
 // src/commands/append.ts
 import * as fs from 'fs'
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
 import { cacheBust } from '../cache.ts'
 import { createClient } from '../client.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printLine, readStdin, type CommandOptions } from '../output.ts'
+import { resolveSpace } from './_space.ts'
 
 export async function runAppend(
   objectId: string,

@@ -22,10 +22,10 @@
 
 // src/commands/daily-note.ts
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
 import { createClient } from '../client.ts'
 import { handleApiError } from '../errors.ts'
 import { readStdin, type CommandOptions } from '../output.ts'
+import { resolveSpace } from './_space.ts'
 
 export async function runDailyNote(
   markdownArg: string,

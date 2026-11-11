@@ -23,13 +23,13 @@
 // src/commands/create.ts
 import * as fs from 'fs'
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
 import { cacheSet } from '../cache.ts'
 import { createClient } from '../client.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { logger } from '../logger.ts'
 import { fetchAndPersist } from '../objects.ts'
 import { printLine, readStdin, type CommandOptions } from '../output.ts'
+import { resolveSpace } from './_space.ts'
 
 const EMPTY_TITLE_KEY_TYPES = new Set(['Organization', 'Blip'])
 

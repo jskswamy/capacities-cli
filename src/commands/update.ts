@@ -23,16 +23,16 @@
 // src/commands/update.ts
 import * as fs from 'fs'
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
 import { cacheBust, cacheGet, TTL } from '../cache.ts'
 import { createClient, replaceBody } from '../client.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { parseFrontmatterLine } from '../frontmatter.ts'
 import { logger } from '../logger.ts'
 import { fetchAndPersist } from '../objects.ts'
-import { fetchStructures } from './search.ts'
 import { printLine, readStdin, type CommandOptions } from '../output.ts'
 import { assertPatchable, buildPropertyPayload, resolvePropertyDef } from '../properties.ts'
+import { resolveSpace } from './_space.ts'
+import { fetchStructures } from './search.ts'
 
 type ObjectReader = { object: { get(params: { id: string }): Promise<{ structureId?: string }> } }
 

@@ -22,11 +22,11 @@
 
 // src/commands/types.ts
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
-import { fetchStructures } from './search.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printTable, printJson, printLine, type CommandOptions } from '../output.ts'
 import { assertPatchable } from '../properties.ts'
+import { resolveSpace } from './_space.ts'
+import { fetchStructures } from './search.ts'
 
 type PropDef = {
   id?: string

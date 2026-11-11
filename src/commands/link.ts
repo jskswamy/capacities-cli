@@ -22,15 +22,15 @@
 
 // src/commands/link.ts
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
 import { cacheBust } from '../cache.ts'
 import { createClient } from '../client.ts'
 import { handleApiError, formatError, CapacitiesError, ExitCode } from '../errors.ts'
 import { logger } from '../logger.ts'
 import { fetchAndPersist } from '../objects.ts'
-import { fetchStructures } from './search.ts'
 import { printLine, type CommandOptions } from '../output.ts'
 import { resolvePropertyDef, buildPropertyPayload } from '../properties.ts'
+import { resolveSpace } from './_space.ts'
+import { fetchStructures } from './search.ts'
 
 export async function runLink(
   objectId: string,

@@ -22,13 +22,13 @@
 
 // src/commands/validate.ts
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
 import { fetchWithCache, TTL } from '../cache.ts'
 import { createClient } from '../client.ts'
 import { CapacitiesError, ExitCode, exit, handleApiError } from '../errors.ts'
 import { parseFrontmatterLine } from '../frontmatter.ts'
 import { readStdin, type CommandOptions } from '../output.ts'
 import { assertPatchable } from '../properties.ts'
+import { resolveSpace } from './_space.ts'
 
 type ValidationResult = {
   valid: boolean

@@ -24,10 +24,10 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Command } from 'commander'
-import { resolveSpace } from './_space.ts'
 import { createClient } from '../client.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printLine, type CommandOptions } from '../output.ts'
+import { resolveSpace } from './_space.ts'
 
 // ponytail: covers common media types; extend when a new type is needed
 const MIME_MAP: Record<string, string> = {

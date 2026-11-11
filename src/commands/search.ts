@@ -22,12 +22,12 @@
 
 // src/commands/search.ts
 import { Command } from 'commander'
-import { type ResolvedSpace } from '../config.ts'
-import { resolveSpace } from './_space.ts'
 import { fetchWithCache, queryHash, TTL } from '../cache.ts'
 import { createClient } from '../client.ts'
+import { type ResolvedSpace } from '../config.ts'
 import { handleApiError, CapacitiesError, ExitCode } from '../errors.ts'
 import { printTable, printJson, type CommandOptions } from '../output.ts'
+import { resolveSpace } from './_space.ts'
 import type { PropertyDef } from '../properties.ts'
 
 type StructureItem = { id: string; title: string; propertyDefinitions?: PropertyDef[] }

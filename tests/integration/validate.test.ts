@@ -22,8 +22,8 @@
 
 // tests/integration/validate.test.ts
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest'
-import { server, runCLI, http, HttpResponse, withStdin } from './helpers.ts'
 import { cacheBust } from '../../src/cache.ts'
+import { server, runCLI, http, HttpResponse, withStdin } from './helpers.ts'
 
 const BLIP_STRUCTURE_RESPONSE = [
   {

@@ -25,8 +25,8 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'vitest'
-import { server, runCLI, http, HttpResponse } from './helpers.ts'
 import { cacheBust } from '../../src/cache.ts'
+import { server, runCLI, http, HttpResponse } from './helpers.ts'
 
 const SPACE_ENDPOINT = 'https://api.capacities.io/space'
 const SPACE_FIXTURE = { id: 'ace1bb70-d2c3-48ef-9f1a-234567890abc', title: 'My Space' }
