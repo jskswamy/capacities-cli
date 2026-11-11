@@ -45,9 +45,8 @@ describe('secrets', () => {
   })
 
   it('encryptSecrets + decryptSecrets round-trip', async () => {
-    const ageModule = await import('age-encryption')
-    const age = await ageModule.default()
-    const identity = age.generateIdentity()
+    const { generateIdentity } = await import('age-encryption')
+    const identity = await generateIdentity()
     process.env.CAPACITIES_AGE_KEY = identity
 
     const { encryptSecrets, decryptSecrets } = await import('../../src/secrets.ts')

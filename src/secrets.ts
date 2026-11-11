@@ -23,15 +23,10 @@
 // src/secrets.ts
 import * as fs from 'fs'
 import * as path from 'path'
-import init from 'age-encryption'
+import { Decrypter, Encrypter, generateIdentity, identityToRecipient } from 'age-encryption'
 import * as smolToml from 'smol-toml'
 import { getAgeKeyFile } from './config.ts'
 import { CapacitiesError, ExitCode } from './errors.ts'
-
-// age-encryption 0.1.x exports a default init() that returns the age API object
-async function age() {
-  return init()
-}
 
 export type SecretsToml = {
   auth_type: 'api_token' | 'oauth'
@@ -70,11 +65,10 @@ export async function decryptSecrets(spaceFile: string): Promise<SecretsToml> {
   }
   const identity = resolveIdentity()
   const ciphertext = fs.readFileSync(spaceFile)
-  const a = await age()
-  const d = new a.Decrypter()
+  const d = new Decrypter()
   d.addIdentity(identity)
   try {
-    const plaintext = d.decrypt(ciphertext, 'text')
+    const plaintext = await d.decrypt(ciphertext, 'text')
     return smolToml.parse(plaintext) as SecretsToml
   } catch (e) {
     throw new CapacitiesError(
@@ -86,19 +80,18 @@ export async function decryptSecrets(spaceFile: string): Promise<SecretsToml> {
 
 export async function encryptSecrets(spaceFile: string, secrets: SecretsToml): Promise<void> {
   const identity = resolveIdentity()
-  const a = await age()
   let recipient: string
   try {
-    recipient = a.identityToRecipient(identity)
+    recipient = await identityToRecipient(identity)
   } catch {
     throw new CapacitiesError(
       ExitCode.CONFIG,
       `Invalid age identity. CAPACITIES_AGE_KEY must start with AGE-SECRET-KEY-1...`
     )
   }
-  const e = new a.Encrypter()
+  const e = new Encrypter()
   e.addRecipient(recipient)
-  const ciphertext = e.encrypt(serializeSecrets(secrets))
+  const ciphertext = await e.encrypt(serializeSecrets(secrets))
   fs.mkdirSync(path.dirname(spaceFile), { recursive: true })
   const tmp = spaceFile + '.tmp'
   fs.writeFileSync(tmp, Buffer.from(ciphertext))
@@ -116,8 +109,7 @@ export function serializeSecrets(s: SecretsToml): string {
 }
 
 export async function generateAgeKeypair(): Promise<{ identity: string; recipient: string }> {
-  const a = await age()
-  const identity = a.generateIdentity()
-  const recipient = a.identityToRecipient(identity)
+  const identity = await generateIdentity()
+  const recipient = await identityToRecipient(identity)
   return { identity, recipient }
 }
